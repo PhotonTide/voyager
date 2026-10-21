@@ -2,6 +2,8 @@
 
 **A glitch instrument for photos, video and your camera.** Stack live effects, steer them by dragging on the image, paint where they show, and export stills, looping video or GIFs. It runs entirely in your browser: nothing is uploaded.
 
+**Try it: [voyager-glitch.vercel.app](https://voyager-glitch.vercel.app)**
+
 ![VOYAGER](og.jpg)
 
 ## What it does
