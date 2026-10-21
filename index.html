@@ -3,9 +3,21 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-</head>
-<body>
-<title>VOYAGER</title>
+<title>VOYAGER · glitch instrument</title>
+<meta name="description" content="VOYAGER is a free glitch instrument for photos, video and your camera. Stack 40+ live effects, paint where they show, and export stills, looping video and GIFs. Runs entirely in your browser.">
+<meta name="theme-color" content="#05060a">
+<meta name="color-scheme" content="dark">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="VOYAGER">
+<meta property="og:type" content="website">
+<meta property="og:title" content="VOYAGER · glitch instrument">
+<meta property="og:description" content="Glitch photos, video and your camera in the browser. 40+ live effects, looping video and GIF export.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="VOYAGER · glitch instrument">
+<meta name="twitter:description" content="Glitch photos, video and your camera in the browser. 40+ live effects, looping video and GIF export.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2305060a'/%3E%3Ccircle cx='16' cy='16' r='7' fill='none' stroke='%23e2b24c' stroke-width='2.4'/%3E%3Cpath d='M3 13h12M17 19h12' stroke='%23ff4a5c' stroke-width='2'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Michroma&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@400;500;600&display=swap">
@@ -134,7 +146,7 @@ details.sec>summary.sec-h{margin-bottom:0}
 .ins-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
 .ins-name{font:400 15px/1.2 var(--wide);letter-spacing:.2em;color:var(--gold)}
 .ins-cat{font:400 10px/1.6 var(--mono);color:var(--faint);letter-spacing:.1em;text-transform:uppercase}
-.ins-acts{display:flex;gap:4px}
+.ins-acts{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
 .ins-acts .btn{height:26px;padding:0 8px;font-size:12px}
 .ins-desc{color:var(--muted);margin:8px 0 14px;font-size:12.5px;text-wrap:pretty}
 .field{display:grid;gap:5px;margin-bottom:12px}
@@ -186,18 +198,94 @@ textarea{height:auto;min-height:52px;padding:6px 8px;resize:vertical;font:inheri
 .progress span{font:400 11px var(--mono);color:var(--muted)}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:40;background:var(--text);color:var(--ground);padding:8px 14px;border-radius:3px;font-weight:500;max-width:calc(100% - 32px)}
 
+#bExport{order:10}
+.tools,.hint,.zoom{z-index:3}
+.stage-view{overflow:hidden}
+.frame{transform-origin:50% 50%;will-change:transform}
+.frame.px #view{image-rendering:pixelated}
+.zoom{position:absolute;right:16px;top:12px;display:flex;align-items:center;padding:3px;background:rgba(12,14,21,.92);border:1px solid var(--line2);border-radius:4px;backdrop-filter:blur(6px)}
+.zoom button{height:28px;min-width:28px;padding:0 8px;border:0;background:transparent;border-radius:2px;color:var(--muted);font:500 12px var(--mono);font-variant-numeric:tabular-nums}
+.zoom button:hover{color:var(--gold)}
+#bZoomFit{min-width:52px}
+.layer{grid-template-columns:28px minmax(0,1fr) auto auto}
+.layer .lock{width:26px;height:28px;border:0;background:none;color:var(--faint);display:grid;place-items:center;padding:0;opacity:.55}
+.layer .lock svg{width:13px;height:13px}
+.layer .lock.on{color:var(--gold);opacity:1}
+.layer:hover .lock{opacity:1}
+.start{position:absolute;inset:0;z-index:6;display:flex;align-items:center;justify-content:center;padding:16px;background:var(--stage);
+  background-image:radial-gradient(circle,#1a1d2b 1px,transparent 1.2px);background-size:22px 22px}
+.start-card{max-width:420px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px;padding:32px 24px;border:1px dashed var(--line2);border-radius:6px;background:rgba(8,9,15,.85)}
+.start-mark{font:400 24px/1 var(--wide);letter-spacing:.36em;margin-right:-.36em}
+.start-card p{margin:0;color:var(--muted);font-size:13.5px;text-wrap:pretty}
+.start-acts{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.start-acts .btn{height:40px;padding:0 16px}
+.start-drop{font:400 11px var(--mono)!important;letter-spacing:.08em;color:var(--faint)!important;text-transform:uppercase}
+.start-sample{border:0;background:none;color:var(--gold);text-decoration:underline;text-underline-offset:3px;padding:6px}
+.touch-keys{display:none}
+#exSave{justify-self:start;margin-top:4px}
+.toast{bottom:calc(24px + env(safe-area-inset-bottom))}
+
 @media (max-width:820px){
-  body{overflow:auto}
-  .app{height:auto;min-height:100%;grid-template-columns:minmax(0,1fr);grid-template-rows:auto 62vh auto}
-  .panel{border-left:0;border-top:1px solid var(--line);overflow:visible}
+  html,body{height:auto}
+  body{overflow:visible;min-height:100%}
+  .app{height:auto;min-height:100%;grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto auto}
+  .stage{position:sticky;top:0;z-index:5;height:56vh;height:56svh;border-bottom:1px solid var(--line)}
+  .panel{border-left:0;overflow:visible;padding-bottom:env(safe-area-inset-bottom)}
+  .sheet{padding:0;align-items:flex-end}
+  .sheet-card{max-height:92vh;max-height:92svh;border-radius:12px 12px 0 0;border-bottom:0}
+  .sheet-body{padding-bottom:calc(16px + env(safe-area-inset-bottom))}
+  .lib{grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:8px}
+  .zoom{top:8px;right:8px}
+  .tools{left:8px;bottom:8px}
+  /* one scrolling row of buttons, Export first so it is always in reach */
+  .bar{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding:8px 10px;padding-top:max(8px,env(safe-area-inset-top));gap:4px}
+  .bar::-webkit-scrollbar{display:none}
+  .bar{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent)}
+  .mark{margin-right:6px;flex:none}
+  .mark span{display:none}
+  .bar>.btn{flex:none}
+  #bExport{order:0}
+  .sep{display:none}
+}
+@media (max-width:640px){
+  .mark b{font-size:13px;letter-spacing:.24em}
+  .tools input[type=range]{width:64px}
+  .tools button{padding:0 8px}
+  .telemetry{gap:12px;padding:6px 10px}
+  .start-card{padding:24px 16px}
+}
+@media (pointer:coarse){
+  .btn{height:38px}
+  .bar .btn{min-width:40px;justify-content:center}
+  button,.chip,.layer,.img-row{touch-action:manipulation}
+  .chip{height:32px;padding:0 12px}
+  .seg button{height:36px}
+  .layer{height:46px}
+  .layer .mv button{width:32px;height:36px;font-size:13px}
+  .layer .eye,.layer .lock{width:34px;height:36px}
+  .img-acts button{height:36px;min-width:36px}
+  .sec-h .btn,.ins-acts .btn{height:32px}
+  .tools button{height:36px}
+  .zoom button{height:34px;min-width:34px}
+  input[type=range]{height:30px}
+  input[type=range]::-webkit-slider-thumb{width:22px;height:22px;margin-top:-10px}
+  input[type=range]::-moz-range-thumb{width:22px;height:22px}
+  input[type=text],textarea,select{font-size:16px;height:38px}
+  textarea{height:auto}
+  .keys{display:none}
+  .touch-keys{display:block}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
+</head>
+<body>
 
 <div class="app" id="app">
   <header class="bar">
     <div class="mark"><b>VOYAGER</b><span>glitch instrument</span></div>
-    <button class="btn" id="bOpen" title="Open photo (O)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 12.5V4h4l1.5 1.5H14v7z"/></svg><span class="lbl">Open</span></button>
+    <button class="btn gold" id="bExport" title="Export (E)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 2v8M4.5 6.5 8 10l3.5-3.5M3 13.5h10"/></svg><span class="lbl">Export</span></button>
+    <button class="btn" id="bOpen" title="Open photo or video (O)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 12.5V4h4l1.5 1.5H14v7z"/></svg><span class="lbl">Open</span></button>
+    <button class="btn" id="bCam" title="Use your camera (V)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1.5" y="4.5" width="9" height="8" rx="1"/><path d="m10.5 7.5 4-2.5v7l-4-2.5"/></svg><span class="lbl">Camera</span></button>
     <button class="btn" id="bPlace" title="Place an image on top of your photo (P)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1.5" y="4.5" width="9" height="9"/><rect x="5.5" y="1.5" width="9" height="9" fill="var(--panel)"/></svg><span class="lbl">Place image</span></button>
     <button class="btn" id="bUndo" title="Undo (Ctrl/Cmd Z)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M5 3 2 6l3 3M2.5 6H10a4 4 0 0 1 0 8H7"/></svg><span class="lbl">Undo</span></button>
     <button class="btn" id="bRedo" title="Redo (Shift Ctrl/Cmd Z)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="m11 3 3 3-3 3M13.5 6H6a4 4 0 0 0 0 8h3"/></svg><span class="lbl">Redo</span></button>
@@ -205,7 +293,7 @@ textarea{height:auto;min-height:52px;padding:6px 8px;resize:vertical;font:inheri
     <button class="btn" id="bChaos" title="Random stack (R)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="2" width="12" height="12" rx="2"/><circle cx="5.5" cy="5.5" r=".9" fill="currentColor"/><circle cx="10.5" cy="10.5" r=".9" fill="currentColor"/><circle cx="8" cy="8" r=".9" fill="currentColor"/></svg><span class="lbl">Chaos</span></button>
     <button class="btn on" id="bPlay" title="Play or freeze (Space)"><svg viewBox="0 0 16 16" fill="currentColor"><rect x="4" y="3" width="3" height="10"/><rect x="9" y="3" width="3" height="10"/></svg><span class="lbl">Freeze</span></button>
     <button class="btn" id="bCompare" title="Hold to see the original (\)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="3" width="12" height="10"/><path d="M8 3v10"/></svg><span class="lbl">Hold original</span></button>
-    <button class="btn gold" id="bExport" title="Export (E)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 2v8M4.5 6.5 8 10l3.5-3.5M3 13.5h10"/></svg><span class="lbl">Export</span></button>
+    <button class="btn" id="bShare" title="Copy a link to this stack (S)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M6.5 9.5 9.5 6.5M7 4.5l1.3-1.3a2.6 2.6 0 0 1 3.7 3.7L10.7 8.2M9 11.5l-1.3 1.3A2.6 2.6 0 0 1 4 9.1l1.3-1.3"/></svg><span class="lbl">Share</span></button>
   </header>
 
   <main class="stage">
@@ -220,7 +308,24 @@ textarea{height:auto;min-height:52px;padding:6px 8px;resize:vertical;font:inheri
         <button data-tool="erase" title="Erase where the layer shows (X)">Erase</button>
         <label for="brush">BRUSH <input type="range" id="brush" min="6" max="260" value="70"></label>
       </div>
+      <div class="zoom" id="zoomCtl">
+        <button id="bZoomOut" title="Zoom out (−)" aria-label="Zoom out">−</button>
+        <button id="bZoomFit" title="Fit to screen (0)" aria-label="Fit to screen">100%</button>
+        <button id="bZoomIn" title="Zoom in (+)" aria-label="Zoom in">+</button>
+      </div>
       <div class="hint" id="hint">Drag on the image to steer the selected layer.</div>
+      <div class="start" id="start" hidden>
+        <div class="start-card">
+          <b class="start-mark">VOYAGER</b>
+          <p>Glitch a photo, a video or your camera. Everything runs in your browser and nothing is uploaded.</p>
+          <div class="start-acts">
+            <button class="btn gold" id="sOpen"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 12.5V4h4l1.5 1.5H14v7z"/></svg>Open photo or video</button>
+            <button class="btn" id="sCam"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1.5" y="4.5" width="9" height="8" rx="1"/><path d="m10.5 7.5 4-2.5v7l-4-2.5"/></svg>Use camera</button>
+          </div>
+          <p class="start-drop">or drop or paste a file anywhere</p>
+          <button class="start-sample" id="sSample">Try it with the sample image</button>
+        </div>
+      </div>
       <div class="drop" id="drop" hidden>DROP TO PLACE ON TOP</div>
     </div>
     <div class="telemetry" id="telemetry"></div>
@@ -250,7 +355,14 @@ textarea{height:auto;min-height:52px;padding:6px 8px;resize:vertical;font:inheri
       <summary class="sec-h"><h2>Image</h2></summary>
       <p class="readout" id="docInfo"></p>
       <div class="field"><div class="field-h"><span>Crop</span></div><div class="seg" id="aspects"></div></div>
-      <div class="row"><button class="btn" id="bRot">Rotate 90°</button><button class="btn" id="bFlip">Flip</button><button class="btn" id="bOpen2">Open photo</button></div>
+      <div class="row"><button class="btn" id="bRot">Rotate 90°</button><button class="btn" id="bFlip">Flip</button><button class="btn" id="bOpen2">Open photo or video</button></div>
+      <div id="vidCtl" hidden>
+        <div class="field" style="margin-top:14px"><div class="field-h"><span>Video position</span><output id="vidOut">0.0 s</output></div><input type="range" id="vidPos" min="0" max="1" step="0.01" value="0"></div>
+        <label class="toggle"><input type="checkbox" id="vidSound"> Play sound</label>
+      </div>
+      <div class="row" id="camCtl" hidden style="margin-top:12px"><button class="btn gold" id="bSnap">Take photo</button><button class="btn" id="bCamSwitch">Switch camera</button><button class="btn" id="bCamStop">Stop camera</button></div>
+      <div class="row" style="margin-top:12px"><button class="btn" id="bReset">Start over</button></div>
+      <p class="note" id="saveNote">Your work saves in this browser automatically.</p>
     </details>
     <details class="sec" id="stackSec">
       <summary class="sec-h"><h2>My stacks</h2></summary>
@@ -259,7 +371,8 @@ textarea{height:auto;min-height:52px;padding:6px 8px;resize:vertical;font:inheri
       <p class="note">Saved in this browser. Painted masks and overlay photos are not included.</p>
     </details>
     <section class="sec">
-      <p class="note">Keys: Space freeze · Right-click or G hides the crosshair · P place image · R chaos · Delete removes the selected image or layer · T steer · B paint · X erase · \ hold original · E export</p>
+      <p class="note keys">Keys: Space freeze · O open · V camera · P place image · A add effect · R chaos · Shift R randomize layer · L lock layer · Delete removes the selected image or layer · T steer · B paint · X erase · \ hold original · + − 0 zoom · S share link · E export · Right-click or G hides the crosshair. Ctrl or pinch to zoom, scroll or middle-drag to pan.</p>
+      <p class="note touch-keys">Drag to steer. Two fingers zoom and move the view. With a placed image selected, two fingers resize and turn it instead.</p>
     </section>
   </aside>
 </div>
@@ -297,12 +410,12 @@ textarea{height:auto;min-height:52px;padding:6px 8px;resize:vertical;font:inheri
           <button class="btn gold" id="exGif">Make GIF</button>
         </div>
       </div>
-      <div class="progress" id="exProg" hidden><div class="track"><div class="fill" id="exFill"></div></div><span id="exMsg"></span></div>
+      <div class="progress" id="exProg" hidden><div class="track"><div class="fill" id="exFill"></div></div><span id="exMsg"></span><button class="btn gold" id="exSave" hidden>Save to device</button></div>
     </div>
   </div>
 </div>
 
-<input type="file" id="file" accept="image/*" hidden>
+<input type="file" id="file" accept="image/*,video/*" hidden>
 <input type="file" id="file2" accept="image/*" hidden>
 <div class="toast" id="toast" hidden></div>
 <script>
@@ -950,7 +1063,7 @@ function copyTo(fb,W,H,tex){ gl.bindFramebuffer(gl.FRAMEBUFFER,fb); gl.viewport(
 /* A render context: source + ping-pong targets at one resolution */
 function makeCtx(srcCanvas, tag, initFrom){
   const W=srcCanvas.width, H=srcCanvas.height;
-  const C={W,H,tag,initFrom,src:mkTex(W,H,{src:srcCanvas})}; mkFB(C.src);
+  const C={W,H,tag,initFrom,srcCanvas,src:mkTex(W,H,{src:srcCanvas})}; mkFB(C.src);
   C.A=mkTex(W,H); C.fbA=mkFB(C.A); C.B=mkTex(W,H); C.fbB=mkFB(C.B);
   C.t3=mkTex(W,H); C.fb3=mkFB(C.t3); C.rb=gl.createRenderbuffer(); gl.bindRenderbuffer(gl.RENDERBUFFER,C.rb);
   gl.renderbufferStorage(gl.RENDERBUFFER,gl.DEPTH_COMPONENT24,W,H); gl.framebufferRenderbuffer(gl.FRAMEBUFFER,gl.DEPTH_ATTACHMENT,gl.RENDERBUFFER,C.rb);
@@ -1149,10 +1262,11 @@ function readTex(tex,W,H){
 "use strict";
 /* ================= APP ================= */
 const S={layers:[],sel:null,tool:'touch',brush:70,playing:true,loop:2,steps:12,phase:0,compare:false,exporting:false,
-  doc:{img:null,name:'sample',rot:0,flip:false,aspect:'orig'},srcW:2,srcH:2,pvScale:1};
+  doc:{img:null,name:'sample',kind:'sample',rot:0,flip:false,aspect:'orig'},srcW:2,srcH:2,pvScale:1,
+  view:{z:1,x:0,y:0}};
 const RT=new Map(); function allLayersEver(){ return RT.values(); }
 const ASPECTS={orig:0,'1:1':1,'4:5':.8,'3:2':1.5,'16:9':16/9,'9:16':9/16};
-const PV_MAX=1600;
+const PV_MAX=1600, PV_MAX_VIDEO=1280;
 let PV=null, TH=null, dirty=true, THUMBS={}, LID=1, MASKV=1;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const nextFrame=()=>new Promise(r=>requestAnimationFrame(()=>r()));
@@ -1168,7 +1282,7 @@ function toast(msg){ const t=$('#toast'); t.textContent=msg; t.hidden=false; cle
 
 /* ---------- source image ---------- */
 function docDims(){
-  const img=S.doc.img; const iw=img.naturalWidth||img.width, ih=img.naturalHeight||img.height;
+  const img=S.doc.img; const iw=img.videoWidth||img.naturalWidth||img.width, ih=img.videoHeight||img.naturalHeight||img.height;
   const r=S.doc.rot%2===1; const w=r?ih:iw, h=r?iw:ih; let cw=w, ch=h; const a=ASPECTS[S.doc.aspect];
   if(a){ if(w/h>a) cw=h*a; else ch=w/a; }
   return {iw,ih,cw,ch};
@@ -1176,29 +1290,83 @@ function docDims(){
 function buildSource(maxDim,even){
   const {iw,ih,cw,ch}=docDims(); const s=Math.min(1,maxDim/Math.max(cw,ch));
   let ow=Math.max(2,Math.round(cw*s)), oh=Math.max(2,Math.round(ch*s)); if(even){ ow-=ow%2; oh-=oh%2; }
-  const c=document.createElement('canvas'); c.width=ow; c.height=oh; const x=c.getContext('2d');
-  x.imageSmoothingQuality='high'; x.translate(ow/2,oh/2); x.scale(s,s); x.rotate(S.doc.rot*Math.PI/2); if(S.doc.flip) x.scale(-1,1);
-  x.drawImage(S.doc.img,-iw/2,-ih/2); return c;
+  const c=document.createElement('canvas'); c.width=ow; c.height=oh; drawSource(c); return c;
 }
+/* redraw the current source frame into a canvas built by buildSource (used every frame for video and camera) */
+function drawSource(c){
+  const {iw,ih,cw,ch}=docDims(); const x=c._x||(c._x=c.getContext('2d'));
+  x.setTransform(1,0,0,1,0,0); x.imageSmoothingQuality='high'; x.translate(c.width/2,c.height/2); x.scale(c.width/cw,c.height/ch); x.rotate(S.doc.rot*Math.PI/2); if(S.doc.flip) x.scale(-1,1);
+  x.drawImage(S.doc.img,-iw/2,-ih/2);
+}
+function refreshSrc(C){ drawSource(C.srcCanvas); upload(C.src,C.srcCanvas); }
+const isMoving=()=>S.doc.kind==='video'||S.doc.kind==='camera';
 function rebuildPreview(){
-  const c=buildSource(Math.round(PV_MAX*S.pvScale)); S.srcW=c.width; S.srcH=c.height;
+  const c=buildSource(Math.round((isMoving()?PV_MAX_VIDEO:PV_MAX)*S.pvScale)); S.srcW=c.width; S.srcH=c.height;
   freeCtx(PV); PV=makeCtx(c,'pv');
   freeCtx(TH); TH=makeCtx(buildSource(240),'th'); THUMBS={};
   cv.width=PV.W; cv.height=PV.H; layoutFrame(); updateDocInfo(); dirty=true;
   try{ baseThumb=buildSource(96).toDataURL('image/jpeg',.8); }catch(e){ baseThumb=''; } renderImages();
 }
-function setDocImage(img,name){
-  S.doc={img,name,rot:0,flip:false,aspect:'orig'};
+/* kind: 'sample' | 'image' | 'video' | 'camera'. blob is kept so autosave can restore the photo or video. */
+function setDocImage(img,name,kind,blob,o){
+  releaseDoc();
+  S.doc={img,name,kind:kind||(name==='sample'?'sample':'image'),blob:blob||null,rot:0,flip:false,aspect:'orig',...(o||{})};
   for(const L of RT.values()){ if(L._field){ L._field.tex.forEach(t=>gl.deleteTexture(t)); L._field.fb.forEach(f=>gl.deleteFramebuffer(f)); L._field=null; } }
-  rebuildPreview(); renderAspects();
+  for(const L of RT.values()){ if(L._fb&&L._fb.pv) L._fb.pv.fresh=true; }
+  setView(1,0,0); rebuildPreview(); renderAspects(); updSourceUI(); hideStart(); saveDoc();
 }
-function loadFile(f){
-  if(!f) return;
-  if(f.type&&!f.type.startsWith('image/')){ toast('That file is not an image.'); return; }
-  const url=URL.createObjectURL(f); const im=new Image();
-  im.onload=()=>{ setDocImage(im,(f.name||'photo').replace(/\.[^.]+$/,'')); toast('Opened '+(f.name||'photo')); };
-  im.onerror=()=>toast('Could not open that image. Convert HEIC photos to JPG first.');
-  im.src=url;
+/* stop whatever the old source was doing: pause video, end camera stream */
+function releaseDoc(){
+  const d=S.doc; if(!d||!d.img) return;
+  if(d.kind==='video'){ d.img.pause(); if(d.img._url) URL.revokeObjectURL(d.img._url); d.img.removeAttribute('src'); d.img.load(); }
+  if(d.kind==='camera'&&d.img.srcObject){ d.img.srcObject.getTracks().forEach(t=>t.stop()); d.img.srcObject=null; }
+}
+const fileName=f=>(f.name||'photo').replace(/\.[^.]+$/,'');
+function loadFile(f,o){
+  if(!f) return Promise.resolve(false);
+  if(f.type&&f.type.startsWith('video/')) return loadVideo(f,o);
+  if(f.type&&!f.type.startsWith('image/')){ toast('That file is not a photo or video.'); return Promise.resolve(false); }
+  return new Promise(res=>{
+    const url=URL.createObjectURL(f); const im=new Image();
+    im.onload=()=>{ setDocImage(im,o&&o.name||fileName(f),'image',f,o&&o.doc); if(!o) toast('Opened '+(f.name||'photo')); res(true); };
+    im.onerror=()=>{ toast('Could not open that image. Convert HEIC photos to JPG first.'); res(false); };
+    im.src=url;
+  });
+}
+function mkVideoEl(){ const v=document.createElement('video'); v.muted=true; v.playsInline=true; v.setAttribute('playsinline',''); v.setAttribute('muted',''); v.crossOrigin='anonymous'; return v; }
+function loadVideo(f,o){
+  return new Promise(res=>{
+    const v=mkVideoEl(); v.loop=true; v.preload='auto'; v._url=URL.createObjectURL(f);
+    v.onloadeddata=()=>{ v.onloadeddata=null; setDocImage(v,o&&o.name||fileName(f),'video',f,o&&o.doc); if(S.playing) v.play().catch(()=>{});
+      if(!o) toast(`Opened ${f.name||'video'}${isFinite(v.duration)?` · ${v.duration.toFixed(1)} s`:''}`); res(true); };
+    v.onerror=()=>{ URL.revokeObjectURL(v._url); toast('This browser cannot play that video. Try an MP4 (H.264) or WebM.'); res(false); };
+    v.src=v._url;
+  });
+}
+/* ---------- camera ---------- */
+let camFacing='user';
+async function startCamera(facing){
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){ toast('Camera needs a secure (https) page and a current browser.'); return; }
+  camFacing=facing||camFacing;
+  let stream;
+  try{ stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:camFacing,width:{ideal:1280},height:{ideal:720}},audio:false}); }
+  catch(e){ toast(e&&e.name==='NotAllowedError'?'Camera blocked. Allow it in your browser settings to use it.':'No camera found.'); return; }
+  const v=mkVideoEl(); v.srcObject=stream;
+  await new Promise(r=>{ v.onloadeddata=r; v.play().catch(()=>{}); setTimeout(r,3000); });
+  if(!v.videoWidth){ stream.getTracks().forEach(t=>t.stop()); toast('The camera did not start.'); return; }
+  setDocImage(v,'camera','camera',null,{flip:camFacing==='user'});
+  toast(camFacing==='user'?'Camera on. Mirrored like a selfie; use Flip to change.':'Camera on.');
+}
+function snapCamera(){
+  if(S.doc.kind!=='camera') return;
+  const v=S.doc.img; const c=document.createElement('canvas'); c.width=v.videoWidth; c.height=v.videoHeight; c.getContext('2d').drawImage(v,0,0);
+  const keep={rot:S.doc.rot,flip:S.doc.flip,aspect:S.doc.aspect};
+  c.toBlob(b=>{ if(!b) return; const f=new File([b],'camera-photo.jpg',{type:'image/jpeg'}); loadFile(f,{name:'camera photo',doc:keep}).then(ok=>{ if(ok) toast('Photo taken. The camera is off.'); }); },'image/jpeg',.95);
+}
+function updSourceUI(){
+  const k=S.doc.kind; $('#vidCtl').hidden=k!=='video'; $('#camCtl').hidden=k!=='camera';
+  $('#bCam').classList.toggle('on',k==='camera'); $('#bCam').title=k==='camera'?'Take a photo and stop the camera (V)':'Use your camera (V)';
+  if(k==='video'){ $('#vidSound').checked=!S.doc.img.muted; }
 }
 
 /* ---------- layers ---------- */
@@ -1208,11 +1376,29 @@ function newLayer(type,o={},temp){
     pt:(fx.pt||[.5,.5]).slice(),vec:(fx.vec||[.14,.05]).slice(),seed:1+Math.floor(Math.random()*9000),live:fx.live!==false,maskOn:false,maskInv:false,
     text:fx.aux==='text'?'VOYAGER':''};
   if(o.p) for(const k in o.p) L.p[+k]=o.p[k];
-  ['opacity','blend','mode','c0','c1','pt','vec','live','text','seed','on','maskInv'].forEach(k=>{ if(o[k]!==undefined) L[k]=Array.isArray(o[k])?o[k].slice():o[k]; });
+  ['opacity','blend','mode','c0','c1','pt','vec','live','text','seed','on','maskInv','lock'].forEach(k=>{ if(o[k]!==undefined) L[k]=Array.isArray(o[k])?o[k].slice():o[k]; });
   if(!temp) RT.set(L.id,L);
   return L;
 }
-const SER=['id','type','on','opacity','blend','p','mode','c0','c1','pt','vec','seed','live','maskOn','maskInv','text'];
+/* Clean a layer description that came from outside (shared link, saved stack, autosave) before it reaches the UI or GPU. */
+function cleanLayer(d){
+  if(!d||typeof d!=='object') return null; const fx=FXM[d.type]; if(!fx) return null;
+  const num=(v,a,b,def)=>typeof v==='number'&&isFinite(v)?clamp(v,a,b):def;
+  const col=v=>typeof v==='string'&&/^#[0-9a-f]{6}$/i.test(v)?v:undefined;
+  const o={};
+  if(d.p&&typeof d.p==='object'){ o.p={}; fx.p.forEach((q,i)=>{ const v=num(d.p[i],q[1],q[2]); if(v!==undefined) o.p[i]=v; }); }
+  o.opacity=num(d.opacity,0,1,1); o.blend=Math.round(num(d.blend,0,BLENDS.length-1,0));
+  o.mode=Math.round(num(d.mode,0,fx.modes?fx.modes.length-1:0,0));
+  o.c0=col(d.c0); o.c1=col(d.c1);
+  if(Array.isArray(d.pt)&&d.pt.length===2) o.pt=[num(d.pt[0],-.5,1.5,.5),num(d.pt[1],-.5,1.5,.5)];
+  if(Array.isArray(d.vec)&&d.vec.length===2) o.vec=[num(d.vec[0],-1,1,0),num(d.vec[1],-1,1,0)];
+  o.seed=Math.round(num(d.seed,1,1e6,1+Math.floor(Math.random()*9000)));
+  if(typeof d.live==='boolean') o.live=d.live; if(typeof d.on==='boolean') o.on=d.on;
+  if(typeof d.maskInv==='boolean') o.maskInv=d.maskInv; if(typeof d.lock==='boolean') o.lock=d.lock;
+  if(typeof d.text==='string') o.text=d.text.slice(0,400);
+  return [d.type,o];
+}
+const SER=['id','type','on','opacity','blend','p','mode','c0','c1','pt','vec','seed','live','maskOn','maskInv','text','lock'];
 function ser(L){ const o={}; SER.forEach(k=>o[k]=Array.isArray(L[k])?L[k].slice():L[k]); return o; }
 const selLayer=()=>S.layers.find(l=>l.id===S.sel)||null;
 
@@ -1231,7 +1417,7 @@ function commit(){
   // drop mask snapshots nothing references
   const live=new Set(); HIST.s.forEach(h=>Object.entries(h.masks).forEach(([id,ms])=>live.add(id+':'+ms.ver)));
   for(const k of maskSnap.keys()) if(!live.has(k)) maskSnap.delete(k);
-  updUndo();
+  updUndo(); scheduleSave();
 }
 function restore(h){
   S.layers=h.layers.map(d=>{
@@ -1242,28 +1428,37 @@ function restore(h){
     return L; });
   S.sel=h.sel; renderAll(); dirty=true;
 }
-function undo(){ if(HIST.i>0){ HIST.i--; restore(HIST.s[HIST.i]); } updUndo(); }
-function redo(){ if(HIST.i<HIST.s.length-1){ HIST.i++; restore(HIST.s[HIST.i]); } updUndo(); }
+function undo(){ if(HIST.i>0){ HIST.i--; restore(HIST.s[HIST.i]); scheduleSave(); } updUndo(); }
+function redo(){ if(HIST.i<HIST.s.length-1){ HIST.i++; restore(HIST.s[HIST.i]); scheduleSave(); } updUndo(); }
 function updUndo(){ $('#bUndo').disabled=HIST.i<=0; $('#bRedo').disabled=HIST.i>=HIST.s.length-1; }
 
 /* ---------- stacks ---------- */
 function applyStack(stack,name){
-  S.layers=S.layers.filter(l=>l.type==='image').concat(stack.map(([t,o])=>newLayer(t,o||{})).filter(Boolean));
-  S.sel=S.layers.length?S.layers[S.layers.length-1].id:null;
+  S.layers=S.layers.filter(l=>l.type==='image').concat(stack.map(([t,o])=>newLayer(t,o||{})).filter(Boolean));  S.sel=S.layers.length?S.layers[S.layers.length-1].id:null;
   S.activePreset=name||null; commit(); renderAll(); dirty=true;
 }
+/* new random settings for one layer; placed images and text keep their position and size */
+function randomizeLayer(L){
+  const fx=FXM[L.type]; const placed=L.type==='image'||L.type==='text';
+  fx.p.forEach((q,i)=>{ if(placed&&i<2) return; const st=stepOf(q); let v=q[3]+(Math.random()-.5)*(q[2]-q[1])*.5; v=clamp(v,q[1],q[2]); if(st>=1) v=Math.round(v); L.p[i]=v; });
+  if(fx.modes&&L.type!=='image') L.mode=Math.floor(Math.random()*fx.modes.length);
+  if(!placed) L.pt=[.2+Math.random()*.6,.2+Math.random()*.6];
+  L.vec=[(Math.random()-.5)*.4,(Math.random()-.5)*.4]; L.seed=1+Math.floor(Math.random()*9000);
+}
+function randomizeSel(){ const L=selLayer(); if(!L) return; randomizeLayer(L); S.activePreset=null; commit(); renderAll(); dirty=true; toast(FXM[L.type].name+' randomized'); }
+function toggleLock(L){ if(!L) return; L.lock=!L.lock; commit(); renderLayers(); renderInspector(); toast(L.lock?FXM[L.type].name+' locked. Chaos keeps it.':FXM[L.type].name+' unlocked.'); }
 function chaos(){
-  const n=2+Math.floor(Math.random()*3); const picks=[];
-  while(picks.length<n){ const t=CHAOS_POOL[Math.floor(Math.random()*CHAOS_POOL.length)]; if(picks.includes(t)) continue; if(FXM[t].kind==='3d'&&picks.some(p=>FXM[p].kind==='3d')) continue; picks.push(t); }
+  const kept=S.layers.filter(l=>l.type==='image'||l.lock);
+  const has3d=kept.some(l=>FXM[l.type].kind==='3d');
+  const n=Math.max(1,2+Math.floor(Math.random()*3)-kept.filter(l=>l.type!=='image').length); const picks=[];
+  while(picks.length<n){ const t=CHAOS_POOL[Math.floor(Math.random()*CHAOS_POOL.length)]; if(picks.includes(t)) continue; if(FXM[t].kind==='3d'&&(has3d||picks.some(p=>FXM[p].kind==='3d'))) continue; picks.push(t); }
   picks.sort((a,b)=>(FXM[b].kind==='3d')-(FXM[a].kind==='3d'));
-  const keepImgs=S.layers.filter(l=>l.type==='image');
-  S.layers=picks.map((t,idx)=>{ const L=newLayer(t); const fx=FXM[t];
-    fx.p.forEach((q,i)=>{ const st=stepOf(q); let v=q[3]+(Math.random()-.5)*(q[2]-q[1])*.5; v=clamp(v,q[1],q[2]); if(st>=1) v=Math.round(v); L.p[i]=v; });
-    if(fx.modes) L.mode=Math.floor(Math.random()*fx.modes.length);
-    L.pt=[.2+Math.random()*.6,.2+Math.random()*.6]; L.vec=[(Math.random()-.5)*.4,(Math.random()-.5)*.4];
+  const fresh=picks.map((t,idx)=>{ const L=newLayer(t); randomizeLayer(L);
     if(idx>0&&Math.random()>.7){ L.blend=[1,4,2,5][Math.floor(Math.random()*4)]; L.opacity=+(0.6+Math.random()*.4).toFixed(2); }
     return L; });
-  S.layers=keepImgs.concat(S.layers);
+  // 3D layers redraw the whole frame, so they go first; locked layers keep their order after them
+  const imgs=kept.filter(l=>l.type==='image'), locked=kept.filter(l=>l.type!=='image');
+  S.layers=imgs.concat(fresh.filter(l=>FXM[l.type].kind==='3d'),locked,fresh.filter(l=>FXM[l.type].kind!=='3d'));
   S.sel=S.layers[S.layers.length-1].id; S.activePreset=null; commit(); renderAll(); dirty=true;
 }
 function loadStacks(){ try{ return JSON.parse(localStorage.getItem('voyager.stacks')||'[]'); }catch(e){ return []; } }
@@ -1283,9 +1478,10 @@ function renderLayers(){
   if(!S.layers.length){ ul.innerHTML='<li class="empty">No layers. The photo shows as is.</li>'; return; }
   ul.innerHTML=S.layers.slice().reverse().map(L=>{ const fx=FXM[L.type];
     const meta=[BLENDS[L.blend],Math.round(L.opacity*100)+'%',L.live&&fx.glsl.includes('uPhase')||fx.feedback?'live':null,L.maskOn?'masked':null].filter(Boolean).join(' · ');
-    return `<li class="layer${L.id===S.sel?' sel':''}${L.on?'':' off'}" data-id="${L.id}">
+    return `<li class="layer${L.id===S.sel?' sel':''}${L.on?'':' off'}" data-id="${L.id}" tabindex="0" aria-current="${L.id===S.sel}">
       <button class="eye" data-eye="${L.id}" title="${L.on?'Hide':'Show'} layer" aria-label="${L.on?'Hide':'Show'} ${fx.name}">${L.on?'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M1.5 8S4 3.5 8 3.5 14.5 8 14.5 8 12 12.5 8 12.5 1.5 8 1.5 8z"/><circle cx="8" cy="8" r="2"/></svg>':'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 2l12 12M4 5.5C2.6 6.7 1.5 8 1.5 8S4 12.5 8 12.5c1.3 0 2.4-.4 3.4-1M6.5 3.7c.5-.1 1-.2 1.5-.2 4 0 6.5 4.5 6.5 4.5s-.6 1-1.6 2.1"/></svg>'}</button>
       <div class="ln"><b>${fx.name}${L.type==='image'&&L._img?' · '+esc(L._img.name.toUpperCase()):''}</b><small>${meta}</small></div>
+      <button class="lock${L.lock?' on':''}" data-lock="${L.id}" title="${L.lock?'Unlock: Chaos may replace it':'Lock: Chaos keeps this layer'} (L)" aria-label="${L.lock?'Unlock':'Lock'} ${fx.name}" aria-pressed="${!!L.lock}">${L.lock?LOCK_ON:LOCK_OFF}</button>
       <div class="mv"><button data-up="${L.id}" title="Move up" aria-label="Move up">▲</button><button data-down="${L.id}" title="Move down" aria-label="Move down">▼</button></div></li>`; }).join('');
 }
 function fmtV(v,q){ const st=stepOf(q); return st>=1?String(Math.round(v)):(Math.abs(v)<10?v.toFixed(2):v.toFixed(1)); }
@@ -1294,7 +1490,7 @@ function renderInspector(){
   if(!L){ box.innerHTML='<div class="sec-h"><h2>Layer</h2></div><p class="empty">Pick a layer or add an effect.</p>'; return; }
   const fx=FXM[L.type]; let h='';
   h+=`<div class="ins-head"><div><div class="ins-name">${fx.name}</div><div class="ins-cat">${fx.cat}${fx.feedback?' · feedback':''}</div></div>
-      <div class="ins-acts"><button class="btn" data-act="dup" title="Duplicate layer">Duplicate</button><button class="btn" data-act="del" title="Delete layer">Delete</button></div></div>
+      <div class="ins-acts"><button class="btn" data-act="rand" title="New random settings for this layer (Shift R)">Randomize</button><button class="btn" data-act="dup" title="Duplicate layer">Duplicate</button><button class="btn" data-act="del" title="Delete layer">Delete</button></div></div>
       <p class="ins-desc">${fx.desc}</p>`;
   if(fx.modes) h+=`<div class="field"><div class="field-h"><span>${fx.modeLabel||'Mode'}</span></div><div class="seg">${fx.modes.map((m,i)=>`<button data-mode="${i}" class="${L.mode===i?'on':''}">${m}</button>`).join('')}</div></div>`;
   if(fx.aux==='text') h+=`<div class="field"><div class="field-h"><span>Text</span></div><textarea id="f-text" data-k="text" rows="2">${esc(L.text)}</textarea></div>`;
@@ -1324,7 +1520,7 @@ function steerText(L){ return `POINT ${L.pt[0].toFixed(2)}, ${L.pt[1].toFixed(2)
 function renderAspects(){ $('#aspects').innerHTML=Object.keys(ASPECTS).map(k=>`<button data-aspect="${k}" class="${S.doc.aspect===k?'on':''}">${k==='orig'?'Original':k}</button>`).join(''); }
 function updateDocInfo(){
   const {iw,ih,cw,ch}=docDims(); const s=Math.min(1,MAXTEX/Math.max(cw,ch));
-  $('#docInfo').textContent=`${S.doc.name==='sample'?'SAMPLE IMAGE':S.doc.name.toUpperCase()} · ${iw}×${ih} · EXPORTS AT ${Math.round(cw*s)}×${Math.round(ch*s)}`;
+  $('#docInfo').textContent=`${S.doc.name==='sample'?'SAMPLE IMAGE':S.doc.name.toUpperCase()} · ${SRC_LABEL[S.doc.kind]} · ${iw}×${ih} · EXPORTS AT ${Math.round(cw*s)}×${Math.round(ch*s)}`;
 }
 function updHint(){
   const L=selLayer(); const fx=L&&FXM[L.type]; let t='';
@@ -1344,12 +1540,15 @@ function updPlay(){ const b=$('#bPlay'); b.classList.toggle('on',S.playing);
 function renderAll(){ renderImages(); renderLayers(); renderInspector(); renderPresets(); updUndo(); updHint(); drawHud(); }
 const EYE_ON='<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M1.5 8S4 3.5 8 3.5 14.5 8 14.5 8 12 12.5 8 12.5 1.5 8 1.5 8z"/><circle cx="8" cy="8" r="2"/></svg>';
 const EYE_OFF='<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 2l12 12M4 5.5C2.6 6.7 1.5 8 1.5 8S4 12.5 8 12.5c1.3 0 2.4-.4 3.4-1M6.5 3.7c.5-.1 1-.2 1.5-.2 4 0 6.5 4.5 6.5 4.5s-.6 1-1.6 2.1"/></svg>';
+const LOCK_ON='<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="7" width="10" height="7" rx="1" fill="currentColor"/><path d="M5 7V5a3 3 0 0 1 6 0v2"/></svg>';
+const LOCK_OFF='<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="7" width="10" height="7" rx="1"/><path d="M5 7V5a3 3 0 0 1 5.8-1"/></svg>';
+const SRC_LABEL={sample:'PHOTO',image:'PHOTO',video:'VIDEO',camera:'LIVE CAMERA'};
 let baseThumb='';
 function renderImages(){
   const imgs=S.layers.filter(l=>l.type==='image').reverse();
-  let h=`<li class="img-row" data-base="1" title="Your base photo"><img class="thumb" src="${baseThumb}" alt=""><div class="img-meta"><b>${S.doc.name==='sample'?'SAMPLE IMAGE':esc(S.doc.name.toUpperCase())}</b><small>BASE PHOTO</small></div>
+  let h=`<li class="img-row" data-base="1" title="Your base photo"><img class="thumb" src="${baseThumb}" alt=""><div class="img-meta"><b>${S.doc.name==='sample'?'SAMPLE IMAGE':esc(S.doc.name.toUpperCase())}</b><small>BASE ${SRC_LABEL[S.doc.kind]}</small></div>
     <div class="img-acts"><button data-replace="1" title="Swap in a different base photo">Replace</button></div></li>`;
-  h+=imgs.map(L=>`<li class="img-row${L.id===S.sel?' sel':''}${L.on?'':' off'}" data-img="${L.id}">
+  h+=imgs.map(L=>`<li class="img-row${L.id===S.sel?' sel':''}${L.on?'':' off'}" data-img="${L.id}" tabindex="0" aria-current="${L.id===S.sel}">
     ${L._img&&L._img.thumb?`<img class="thumb" src="${L._img.thumb}" alt="">`:'<span class="thumb"></span>'}
     <div class="img-meta"><b>${esc(L._img?L._img.name.toUpperCase():'EMPTY OVERLAY')}</b><small>ON TOP · ${Math.round(L.p[0]*100)}% · ${Math.round(L.p[1]||0)}°</small></div>
     <div class="img-acts"><button data-imgeye="${L.id}" title="${L.on?'Hide':'Show'}" aria-label="${L.on?'Hide':'Show'} image">${L.on?EYE_ON:EYE_OFF}</button><button class="rm" data-imgdel="${L.id}" title="Remove this image">Remove</button></div></li>`).join('');
@@ -1370,13 +1569,45 @@ function layoutFrame(){
   frameEl.style.width=w+'px'; frameEl.style.height=h+'px'; frameEl.style.marginBottom=(sv.clientWidth<640?52:60)+'px';
   const dpr=Math.min(2,window.devicePixelRatio||1); hud.width=Math.round(w*dpr); hud.height=Math.round(h*dpr); drawHud();
 }
-new ResizeObserver(()=>layoutFrame()).observe($('#stageView'));
+new ResizeObserver(()=>{ layoutFrame(); setView(S.view.z,S.view.x,S.view.y); }).observe($('#stageView'));
+
+/* ---------- view zoom + pan (CSS transform on the frame; toUV reads the transformed rect so tools keep working) ---------- */
+function setView(z,x,y){
+  z=clamp(z,1,12); const w=frameEl.offsetWidth*z, h=frameEl.offsetHeight*z;
+  if(z<=1.001){ z=1; x=0; y=0; } else { x=clamp(x,-w/2,w/2); y=clamp(y,-h/2,h/2); }
+  S.view={z,x,y}; frameEl.style.transform=z===1?'':`translate(${x}px,${y}px) scale(${z})`;
+  frameEl.classList.toggle('px',z>=2); $('#bZoomFit').textContent=Math.round(z*100)+'%';
+}
+/* zoom by factor k keeping the screen point (cx,cy) fixed */
+function zoomAt(k,cx,cy){
+  const v=S.view; const fr=frameEl.getBoundingClientRect();
+  const ox=fr.left+fr.width/2-v.x, oy=fr.top+fr.height/2-v.y; // untransformed centre
+  if(cx===undefined){ cx=ox+v.x; cy=oy+v.y; }
+  const z2=clamp(v.z*k,1,12); const lx=(cx-ox-v.x)/v.z, ly=(cy-oy-v.y)/v.z;
+  setView(z2,cx-ox-lx*z2,cy-oy-ly*z2);
+}
+$('#bZoomIn').onclick=()=>zoomAt(1.5); $('#bZoomOut').onclick=()=>zoomAt(1/1.5); $('#bZoomFit').onclick=()=>setView(1,0,0);
+$('#stageView').addEventListener('wheel',e=>{
+  if(!$('#start').hidden) return;
+  const L=selLayer(); const onImg=e.target===hud&&isPlaced(L)&&S.tool==='touch';
+  if(onImg) return; // the HUD handler resizes the placed image
+  if(e.ctrlKey||e.metaKey){ e.preventDefault(); zoomAt(Math.exp(-e.deltaY*0.01),e.clientX,e.clientY); }
+  else if(S.view.z>1){ e.preventDefault(); setView(S.view.z,S.view.x-e.deltaX,S.view.y-e.deltaY); }
+},{passive:false});
+let panDrag=null;
+$('#stageView').addEventListener('pointerdown',e=>{
+  if(e.button!==1&&!(e.target===$('#stageView')&&S.view.z>1&&e.pointerType==='mouse')) return;
+  e.preventDefault(); panDrag={x:e.clientX,y:e.clientY,vx:S.view.x,vy:S.view.y,id:e.pointerId}; $('#stageView').setPointerCapture(e.pointerId);
+});
+$('#stageView').addEventListener('pointermove',e=>{ if(panDrag&&e.pointerId===panDrag.id) setView(S.view.z,panDrag.vx+e.clientX-panDrag.x,panDrag.vy+e.clientY-panDrag.y); });
+['pointerup','pointercancel'].forEach(t=>$('#stageView').addEventListener(t,e=>{ if(panDrag&&e.pointerId===panDrag.id) panDrag=null; }));
+
 let hover=null, drag=null;
 function drawHud(){
   const W=hud.width,H=hud.height; if(!W) return; hx.clearRect(0,0,W,H);
-  const L=selLayer(); const dpr=W/Math.max(1,hud.clientWidth);
-  if(!L||S.exporting) return; const fx=FXM[L.type];
+  const L=selLayer(); const dpr=W/Math.max(1,hud.clientWidth)/S.view.z;
   const gold='#e2b24c';
+  if(!L||S.exporting) return; const fx=FXM[L.type];
   if(!S.hideGuides&&S.tool==='touch'&&L.type!=='liquify'&&L.type!=='image'&&(fx.usesPt||fx.usesVec)){
     const px=L.pt[0]*W, py=(1-L.pt[1])*H;
     hx.strokeStyle='rgba(0,0,0,.55)'; hx.lineWidth=3*dpr; cross(px,py,dpr);
@@ -1407,11 +1638,14 @@ const isPlaced=L=>L&&(L.type==='image'||L.type==='text');
 function pinchInfo(){ const [a,b]=[...PTRS.values()]; const dx=b[0]-a[0], dy=b[1]-a[1]; return {d:Math.hypot(dx,dy),ang:Math.atan2(dy,dx),mid:[(a[0]+b[0])/2,(a[1]+b[1])/2]}; }
 function syncSlider(i){ const L=selLayer(); const el=$('#f-p'+i), o=$('#o-p'+i); if(el) el.value=L.p[i]; if(o) o.textContent=fmtV(L.p[i],FXM[L.type].p[i]); }
 hud.addEventListener('pointerdown',e=>{
-  if(e.button===2) return;
-  const L=selLayer(); if(!L) return; e.preventDefault(); hud.setPointerCapture(e.pointerId);
+  if(e.button===2||e.button===1) return;
+  const L=selLayer(); e.preventDefault(); hud.setPointerCapture(e.pointerId);
   PTRS.set(e.pointerId,[e.clientX,e.clientY]);
-  if(PTRS.size===2&&S.tool==='touch'&&isPlaced(L)){ drag=null; const r=hud.getBoundingClientRect(); const pi=pinchInfo(); pinch={...pi,s0:L.p[0],r0:L.p[1]||0,pt0:L.pt.slice(),r}; return; }
-  if(PTRS.size>1) return;
+  if(PTRS.size===2){ drag=null; const pi=pinchInfo();
+    if(L&&S.tool==='touch'&&isPlaced(L)){ const r=hud.getBoundingClientRect(); pinch={...pi,s0:L.p[0],r0:L.p[1]||0,pt0:L.pt.slice(),r}; }
+    else pinch={...pi,view:true,z0:S.view.z,x0:S.view.x,y0:S.view.y};
+    return; }
+  if(PTRS.size>1||!L) return;
   const uv=toUV(e); hover=uv; drag={start:uv,last:uv,sv:L.vec.slice(),off:[L.pt[0]-uv[0],L.pt[1]-uv[1]]}; const fx=FXM[L.type];
   if(S.tool==='touch'){ if(L.type!=='liquify'&&fx.usesPt&&!isPlaced(L)) L.pt=uv; }
   else { beginPaint(L,S.tool==='erase'); strokeMask(L,uv,uv,S.tool==='erase'); }
@@ -1420,6 +1654,12 @@ hud.addEventListener('pointerdown',e=>{
 hud.addEventListener('pointermove',e=>{
   if(PTRS.has(e.pointerId)) PTRS.set(e.pointerId,[e.clientX,e.clientY]);
   const uv=toUV(e); hover=uv; const L=selLayer();
+  if(pinch&&pinch.view&&PTRS.size===2){ const pi=pinchInfo();
+    // zoom about the pinch centre, then follow its movement
+    const z2=clamp(pinch.z0*pi.d/Math.max(1,pinch.d),1,12); const fr=frameEl.getBoundingClientRect();
+    const ox=fr.left+fr.width/2-S.view.x, oy=fr.top+fr.height/2-S.view.y;
+    const lx=(pinch.mid[0]-ox-pinch.x0)/pinch.z0, ly=(pinch.mid[1]-oy-pinch.y0)/pinch.z0;
+    setView(z2,pi.mid[0]-ox-lx*z2,pi.mid[1]-oy-ly*z2); drawHud(); return; }
   if(pinch&&L&&PTRS.size===2){ const pi=pinchInfo();
     L.p[0]=clamp(pinch.s0*pi.d/Math.max(1,pinch.d),.05,3); syncSlider(0);
     if(L.type==='image'){ let r=pinch.r0-(pi.ang-pinch.ang)*180/Math.PI; r=((r+540)%360)-180; L.p[1]=Math.round(r); syncSlider(1); }
@@ -1434,7 +1674,7 @@ hud.addEventListener('pointermove',e=>{
   }
   drawHud();
 });
-const endDrag=e=>{ PTRS.delete(e.pointerId); if(pinch){ if(PTRS.size<2){ pinch=null; commit(); renderImages(); } return; } if(drag){ drag=null; commit(); renderLayers(); renderImages(); } };
+const endDrag=e=>{ PTRS.delete(e.pointerId); if(pinch){ if(PTRS.size<2){ if(!pinch.view){ commit(); renderImages(); } pinch=null; } return; } if(drag){ drag=null; commit(); renderLayers(); renderImages(); } };
 hud.addEventListener('pointerup',endDrag); hud.addEventListener('pointercancel',endDrag);
 hud.addEventListener('wheel',e=>{ const L=selLayer(); if(!isPlaced(L)||S.tool!=='touch') return; e.preventDefault();
   if(L.type==='image'&&(e.shiftKey||e.altKey)){ let r=(L.p[1]||0)+e.deltaY*0.15; r=((r+540)%360)-180; L.p[1]=Math.round(r); syncSlider(1); }
@@ -1451,10 +1691,15 @@ $('#layers').addEventListener('click',e=>{
   const t=e.target.closest('button,li'); if(!t) return;
   const find=id=>S.layers.findIndex(l=>l.id===+id);
   if(t.dataset.eye){ const L=S.layers[find(t.dataset.eye)]; L.on=!L.on; commit(); renderLayers(); dirty=true; return; }
+  if(t.dataset.lock){ toggleLock(S.layers[find(t.dataset.lock)]); return; }
   if(t.dataset.up||t.dataset.down){ const i=find(t.dataset.up||t.dataset.down); const j=t.dataset.up?i+1:i-1; if(j<0||j>=S.layers.length) return;
     [S.layers[i],S.layers[j]]=[S.layers[j],S.layers[i]]; commit(); renderLayers(); dirty=true; return; }
   if(t.dataset.id){ S.sel=+t.dataset.id; renderLayers(); renderInspector(); updHint(); drawHud(); }
 });
+/* Enter or Space on a focused layer or image row selects it, like a click */
+['#layers','#imgs'].forEach(id=>$(id).addEventListener('keydown',e=>{
+  if((e.key==='Enter'||e.key===' ')&&e.target.matches('li[tabindex]')){ e.preventDefault(); const id2=e.target.dataset.id||e.target.dataset.img;
+    e.target.click(); const el=document.querySelector(`#layers [data-id="${id2}"],#imgs [data-img="${id2}"]`); if(el) el.focus(); } }));
 const insp=$('#inspector');
 insp.addEventListener('input',e=>{
   const L=selLayer(); if(!L) return; const el=e.target; const fx=FXM[L.type];
@@ -1479,6 +1724,7 @@ insp.addEventListener('click',e=>{
   const a=b.dataset.act; if(!a) return; const i=S.layers.indexOf(L);
   if(a==='del'){ deleteLayer(L); return; }
   else if(a==='dup'){ const n=newLayer(L.type,ser(L)); n.seed=L.seed; n._img=L._img; if(L._mask){ const m=ensureMask(n); m.x.drawImage(L._mask.c,0,0,m.w,m.h); m.painted=true; m.dirty=true; m.ver=++MASKV; n.maskOn=L.maskOn; } S.layers.splice(i+1,0,n); S.sel=n.id; }
+  else if(a==='rand'){ randomizeSel(); return; }
   else if(a==='reseed') L.seed=1+Math.floor(Math.random()*9000);
   else if(a==='center'){ const fx=FXM[L.type]; L.pt=(fx.pt||[.5,.5]).slice(); L.vec=(fx.vec||[.14,.05]).slice(); }
   else if(a==='maskclear'){ const m=ensureMask(L); m.x.fillStyle='#000'; m.x.fillRect(0,0,m.w,m.h); m.painted=true; m.dirty=true; m.ver=++MASKV; L.maskOn=true; }
@@ -1488,15 +1734,15 @@ insp.addEventListener('click',e=>{
   commit(); renderAll(); dirty=true;
 });
 let pendingImg=null;
-function loadOverlay(L,f,done){
+function loadOverlay(L,f,done,name){
   const url=URL.createObjectURL(f); const im=new Image();
   im.onload=()=>{ URL.revokeObjectURL(url); if(L._img) gl.deleteTexture(L._img.tex);
     const c=document.createElement('canvas'); const s=Math.min(1,2048/Math.max(im.width,im.height)); c.width=Math.max(1,Math.round(im.width*s)); c.height=Math.max(1,Math.round(im.height*s));
     c.getContext('2d').drawImage(im,0,0,c.width,c.height);
     const tex=mkTex(c.width,c.height,{src:c}); gl.bindTexture(gl.TEXTURE_2D,tex); gl.generateMipmap(gl.TEXTURE_2D); gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);
     const tc=document.createElement('canvas'); const ts=96/Math.max(c.width,c.height); tc.width=Math.max(1,Math.round(c.width*ts)); tc.height=Math.max(1,Math.round(c.height*ts)); tc.getContext('2d').drawImage(c,0,0,tc.width,tc.height);
-    L._img={tex,w:c.width,h:c.height,name:(f.name||'image').replace(/\.[^.]+$/,''),thumb:tc.toDataURL('image/png')}; renderAll(); dirty=true; if(done) done(); };
-  im.onerror=()=>toast('Could not open that image. Convert HEIC photos to JPG or PNG first.'); im.src=url;
+    L._img={tex,w:c.width,h:c.height,blob:f,name:name||(f.name||'image').replace(/\.[^.]+$/,''),thumb:tc.toDataURL('image/png')}; renderAll(); dirty=true; scheduleSave(); if(done) done(); };
+  im.onerror=()=>{ toast('Could not open that image. Convert HEIC photos to JPG or PNG first.'); if(done&&restoring) done(); }; im.src=url;
 }
 function placeImage(f){
   if(!f) return; if(f.type&&!f.type.startsWith('image/')){ toast('That file is not an image.'); return; }
@@ -1504,21 +1750,22 @@ function placeImage(f){
   loadOverlay(L,f,()=>{ let k=0; while(S.layers[k]&&S.layers[k].type==='image') k++; S.layers.splice(k,0,L); S.sel=L.id; S.activePreset=null; setTool('touch'); commit(); renderAll(); dirty=true;
     toast(S.layers.length>1?'Placed on your photo, under your effects so they glitch it too. Drag to move, scroll or pinch to resize.':'Placed on your photo. Drag to move, scroll or pinch to resize.'); });
 }
-function incoming(f){ if(!f) return; if(S.doc.name==='sample') loadFile(f); else placeImage(f); }
+function incoming(f){ if(!f) return; if(S.doc.kind==='sample'||(f.type||'').startsWith('video/')) loadFile(f); else placeImage(f); }
 $('#file2').addEventListener('change',e=>{ const f=e.target.files[0]; e.target.value=''; if(!f) return;
   if(pendingImg){ const L=pendingImg; pendingImg=null; loadOverlay(L,f,()=>commit()); } else placeImage(f); });
 
-$('#loopLen').addEventListener('input',e=>{ S.loop=+e.target.value; $('#loopOut').textContent=S.loop.toFixed(1)+' s'; });
-$('#steps').addEventListener('input',e=>{ S.steps=+e.target.value; $('#stepsOut').textContent=S.steps; dirty=true; });
-$('#aspects').addEventListener('click',e=>{ const b=e.target.closest('[data-aspect]'); if(!b) return; S.doc.aspect=b.dataset.aspect; renderAspects(); rebuildPreview(); });
-$('#bRot').onclick=()=>{ S.doc.rot=(S.doc.rot+1)%4; rebuildPreview(); };
-$('#bFlip').onclick=()=>{ S.doc.flip=!S.doc.flip; rebuildPreview(); };
+$('#loopLen').addEventListener('input',e=>{ S.loop=+e.target.value; $('#loopOut').textContent=S.loop.toFixed(1)+' s'; scheduleSave(); });
+$('#steps').addEventListener('input',e=>{ S.steps=+e.target.value; $('#stepsOut').textContent=S.steps; dirty=true; scheduleSave(); });
+$('#aspects').addEventListener('click',e=>{ const b=e.target.closest('[data-aspect]'); if(!b) return; S.doc.aspect=b.dataset.aspect; renderAspects(); setView(1,0,0); rebuildPreview(); scheduleSave(); });
+$('#bRot').onclick=()=>{ S.doc.rot=(S.doc.rot+1)%4; setView(1,0,0); rebuildPreview(); scheduleSave(); };
+$('#bFlip').onclick=()=>{ S.doc.flip=!S.doc.flip; rebuildPreview(); scheduleSave(); };
 $('#bSaveStack').onclick=()=>{ const name=$('#stackName').value.trim()||('Stack '+(loadStacks().length+1)); if(!S.layers.length){ toast('Add a layer first.'); return; }
   const a=loadStacks(); a.push({name,layers:S.layers.map(L=>{ const o=ser(L); delete o.id; o.maskOn=false; return o; })}); if(saveStacks(a)){ $('#stackName').value=''; renderStacks(); toast('Saved '+name); } };
 $('#myStacks').addEventListener('click',e=>{ const d=e.target.closest('[data-delstack]'); const a=loadStacks();
   if(d){ a.splice(+d.dataset.delstack,1); saveStacks(a); renderStacks(); return; }
   const s=e.target.closest('[data-stack]'); if(!s) return; const st=a[+s.dataset.stack]; if(!st) return;
-  applyStack(st.layers.map(o=>[o.type,o]),null); });
+  applyStack(st.layers.map(cleanLayer).filter(Boolean),null); });
+$('#myStacks').addEventListener('keydown',e=>{ if((e.key==='Enter'||e.key===' ')&&e.target.matches('[data-stack]')){ e.preventDefault(); e.target.click(); } });
 $('#tools').addEventListener('click',e=>{ const b=e.target.closest('[data-tool]'); if(b) setTool(b.dataset.tool); });
 function setTool(t){ S.tool=t; document.querySelectorAll('#tools [data-tool]').forEach(b=>b.classList.toggle('on',b.dataset.tool===t)); updHint(); drawHud(); }
 $('#brush').addEventListener('input',e=>{ S.brush=+e.target.value; drawHud(); });
@@ -1537,7 +1784,8 @@ $('#imgs').addEventListener('click',e=>{
 $('#bRemoveImg').addEventListener('click',()=>{ const L=selLayer(); if(L&&L.type==='image') deleteLayer(L); });
 $('#file').addEventListener('change',e=>{ loadFile(e.target.files[0]); e.target.value=''; });
 $('#bUndo').onclick=undo; $('#bRedo').onclick=redo; $('#bChaos').onclick=chaos;
-$('#bPlay').onclick=()=>{ S.playing=!S.playing; updPlay(); dirty=true; };
+$('#bPlay').onclick=()=>{ S.playing=!S.playing; updPlay(); dirty=true;
+  if(S.doc.kind==='video'){ if(S.playing) S.doc.img.play().catch(()=>{}); else S.doc.img.pause(); } };
 const cmpOn=()=>{ S.compare=true; dirty=true; }, cmpOff=()=>{ if(S.compare){ S.compare=false; dirty=true; } };
 $('#bCompare').addEventListener('pointerdown',cmpOn); ['pointerup','pointerleave','pointercancel'].forEach(t=>$('#bCompare').addEventListener(t,cmpOff));
 $('#bAdd').onclick=openLib; $('#bExport').onclick=openExport;
@@ -1546,7 +1794,7 @@ document.querySelectorAll('.sheet').forEach(s=>s.addEventListener('click',e=>{ i
 
 /* drag + drop + paste */
 let dragDepth=0;
-window.addEventListener('dragenter',e=>{ if(e.dataTransfer&&[...e.dataTransfer.types].includes('Files')){ dragDepth++; $('#drop').textContent=S.doc.name==='sample'?'DROP PHOTO':'DROP TO PLACE ON TOP'; $('#drop').hidden=false; } });
+window.addEventListener('dragenter',e=>{ if(e.dataTransfer&&[...e.dataTransfer.types].includes('Files')){ dragDepth++; $('#drop').textContent=S.doc.kind==='sample'?'DROP PHOTO OR VIDEO':'DROP AN IMAGE TO PLACE IT ON TOP · A VIDEO REPLACES THE BASE'; $('#drop').hidden=false; } });
 window.addEventListener('dragleave',()=>{ dragDepth=Math.max(0,dragDepth-1); if(!dragDepth) $('#drop').hidden=true; });
 window.addEventListener('dragover',e=>e.preventDefault());
 window.addEventListener('drop',e=>{ e.preventDefault(); dragDepth=0; $('#drop').hidden=true; const f=e.dataTransfer.files&&e.dataTransfer.files[0]; if(f) incoming(f); });
@@ -1556,12 +1804,17 @@ window.addEventListener('paste',e=>{ const it=[...(e.clipboardData&&e.clipboardD
 window.addEventListener('keydown',e=>{
   const tag=(e.target.tagName||'').toLowerCase(); if(tag==='input'&&e.target.type!=='range'&&e.target.type!=='checkbox'||tag==='textarea'||tag==='select') return;
   const mod=e.metaKey||e.ctrlKey; const k=e.key.toLowerCase();
-  if(mod&&k==='z'){ e.preventDefault(); e.shiftKey?redo():undo(); return; }
-  if(mod) return;
+  if(mod&&k==='z'){ e.preventDefault(); e.shiftKey?redo():undo(); return; }  if(mod) return;
+  // let focused buttons and rows handle Enter and Space themselves
+  if((k===' '||k==='enter')&&e.target.closest&&e.target.closest('button,[role=button],li[tabindex],a,summary')) return;
   if(!$('#libSheet').hidden||!$('#exSheet').hidden){ if(k==='escape'&&!S.exporting){ $('#libSheet').hidden=true; $('#exSheet').hidden=true; } return; }
+  if(!$('#start').hidden){ if(k==='o') $('#file').click(); else if(k==='v') startCamera(); return; }
   if(k===' '){ e.preventDefault(); $('#bPlay').click(); }
-  else if(k==='r') chaos(); else if(k==='t') setTool('touch'); else if(k==='b') setTool('paint'); else if(k==='x') setTool('erase');
+  else if(k==='r'&&e.shiftKey) randomizeSel(); else if(k==='r') chaos(); else if(k==='l') toggleLock(selLayer());
+  else if(k==='t') setTool('touch'); else if(k==='b') setTool('paint'); else if(k==='x') setTool('erase');
   else if(k==='e') openExport(); else if(k==='o') $('#file').click(); else if(k==='p') $('#bPlace').click(); else if(k==='g') toggleGuides(); else if(k==='a') openLib();
+  else if(k==='v') $('#bCam').click(); else if(k==='s') shareStack();
+  else if(k==='='||k==='+') zoomAt(1.5); else if(k==='-'||k==='_') zoomAt(1/1.5); else if(k==='0') setView(1,0,0);
   else if(k==='\\') cmpOn();
   else if(k==='delete'||k==='backspace'){ const L=selLayer(); if(L){ e.preventDefault(); deleteLayer(L); } }
 });
@@ -1600,16 +1853,21 @@ function drawThumb(cnv){
 /* ---------- export ---------- */
 function segVal(id){ const b=document.querySelector(`#${id} .on`); return b?b.dataset.v:null; }
 document.querySelectorAll('#exSheet .seg').forEach(s=>s.addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b||S.exporting) return; s.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b)); exInfo(); }));
-function openExport(){ $('#exSheet').hidden=false; $('#exProg').hidden=true; exInfo(); }
+function openExport(){ $('#exSheet').hidden=false; $('#exProg').hidden=true; $('#exSave').hidden=true; exInfo(); }
 function exInfo(){
   const {cw,ch}=docDims(); const s=Math.min(1,MAXTEX/Math.max(cw,ch));
   $('#exStillInfo').textContent=`The frame on screen at ${Math.round(cw*s)} × ${Math.round(ch*s)} px.`;
-  const loops=+segVal('exVidLoops'); $('#exVidInfo').textContent=`Records ${loops} × ${S.loop.toFixed(1)} s loop in real time (${(loops*S.loop).toFixed(1)} s). Long edge ${segVal('exVidRes')} px.`;
+  const loops=+segVal('exVidLoops'); const k=S.doc.kind;
+  $('#exVidLoops').hidden=k==='video';
+  $('#exVidInfo').textContent=k==='video'?`Records your whole clip once with the effects, in real time (${Math.min(vidDur(S.doc.img),VID_MAX).toFixed(1)} s${vidDur(S.doc.img)>VID_MAX?`, the first ${VID_MAX} s`:''}). Long edge ${segVal('exVidRes')} px.${S.doc.img.muted?' Turn on Play sound under Image to keep the audio.':''}`
+    :`Records ${loops} × ${S.loop.toFixed(1)} s loop in real time (${(loops*S.loop).toFixed(1)} s)${k==='camera'?' from the live camera':''}. Long edge ${segVal('exVidRes')} px.`;
   const fps=+segVal('exGifFps'); const fr=Math.min(120,Math.max(2,Math.round(S.loop*fps)));
-  $('#exGifInfo').textContent=`${fr} frames, one seamless ${S.loop.toFixed(1)} s loop, long edge ${segVal('exGifW')} px.`;
+  $('#exGifInfo').textContent=k==='video'?`${fr} frames: ${S.loop.toFixed(1)} s of your clip from the current position, long edge ${segVal('exGifW')} px.`
+    :k==='camera'?`${fr} frames captured live over ${S.loop.toFixed(1)} s, long edge ${segVal('exGifW')} px.`
+    :`${fr} frames, one seamless ${S.loop.toFixed(1)} s loop, long edge ${segVal('exGifW')} px.`;
 }
 function busy(on,msg,frac){
-  S.exporting=on; $('#exProg').hidden=!on&&!msg; $('#exMsg').textContent=msg||''; $('#exFill').style.width=Math.round((frac||0)*100)+'%';
+  S.exporting=on; $('#exProg').hidden=!on&&!msg; if(on) $('#exSave').hidden=true; $('#exMsg').textContent=msg||''; $('#exFill').style.width=Math.round((frac||0)*100)+'%';
   document.querySelectorAll('#exSheet .btn').forEach(b=>b.disabled=on);
 }
 const base=()=>`voyager-${(S.doc.name||'image').replace(/[^\w-]+/g,'-').slice(0,40)}`;
@@ -1619,6 +1877,15 @@ async function saveFile(blob,name){
   if(hasClaude){ await Promise.race([dlReady,sleep(2000)]);
     if(DL){ try{ await DL.save({filename:name,data:blob}); toast('Saved '+name); }
       catch(e){ toast(e&&e.code==='declined'?'Save cancelled.':'Could not save: '+((e&&e.message)||'unknown error')); } return; } }
+  // phones: the share sheet lets people save straight to Photos. It needs a fresh tap, so offer a button.
+  if(COARSE&&navigator.canShare){ const file=new File([blob],name,{type:blob.type});
+    if(navigator.canShare({files:[file]})){ const b=$('#exSave'); b.hidden=false;
+      b.onclick=async()=>{ try{ await navigator.share({files:[file]}); b.hidden=true; }catch(e){ if(e&&e.name==='AbortError') return; download(blob,name); b.hidden=true; } };
+      return; } }
+  download(blob,name);
+}
+const COARSE=matchMedia('(pointer:coarse)').matches;
+function download(blob,name){
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click();
   setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },5000); toast('Saved '+name);
 }
@@ -1641,27 +1908,46 @@ $('#exVid').onclick=async()=>{
     C=makeCtx(buildSource(Math.min(res,MAXTEX),true),'ex','pv');
     const first=renderStack(C,0,0); present(first,C.W,C.H);
     const stream=cv.captureStream(30); const chunks=[];
+    // a video file records once through with its sound (where the browser can capture it)
+    const v=S.doc.kind==='video'?S.doc.img:null;
+    if(v){ v.pause(); await seekTo(v,0);
+      const vs=v.captureStream?v.captureStream():v.mozCaptureStream?v.mozCaptureStream():null;
+      if(vs&&!v.muted) vs.getAudioTracks().forEach(t=>stream.addTrack(t)); }
     const rec=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:Math.min(40e6,Math.round(C.W*C.H*30*0.3))});
     rec.ondataavailable=e=>{ if(e.data&&e.data.size) chunks.push(e.data); };
     const stopped=new Promise(r=>rec.onstop=r);
-    rec.start(200); const dur=S.loop*loops*1000; const t0=performance.now();
-    await new Promise(res2=>{ const tick=()=>{ const el=performance.now()-t0; if(el>=dur){ res2(); return; }
+    const dur=v?Math.min(vidDur(v),VID_MAX)*1000:S.loop*loops*1000;
+    if(v){ v.loop=false; await v.play().catch(()=>{}); }
+    rec.start(200); const t0=performance.now();
+    await new Promise(res2=>{ const tick=()=>{ const el=performance.now()-t0; if(el>=dur||(v&&v.ended)){ res2(); return; }
+      if(isMoving()) refreshSrc(C);
       const ph=(el/1000/S.loop)%1; present(renderStack(C,ph,Math.floor(ph*S.steps)%S.steps),C.W,C.H);
       busy(true,`Recording ${(el/1000).toFixed(1)} / ${(dur/1000).toFixed(1)} s`,el/dur); requestAnimationFrame(tick); }; tick(); });
-    rec.stop(); await stopped; stream.getTracks().forEach(t=>t.stop());
+    rec.stop(); await stopped; stream.getVideoTracks().forEach(t=>t.stop());
+    if(v){ v.loop=true; if(S.playing) v.play().catch(()=>{}); }
     const ext=mime.includes('mp4')?'mp4':'webm'; const blob=new Blob(chunks,{type:mime.split(';')[0]});
     const W=C.W,H=C.H; freeCtx(C); C=null;
     busy(false,`Done. ${W} × ${H} ${ext.toUpperCase()}, ${(blob.size/1e6).toFixed(1)} MB.`,1); await saveFile(blob,`${base()}.${ext}`);
-  }catch(err){ console.error(err); if(C) freeCtx(C); busy(false,'Recording failed: '+err.message,0); }
+  }catch(err){ console.error(err); if(C) freeCtx(C); busy(false,'Recording failed: '+err.message,0); if(S.doc.kind==='video'){ S.doc.img.loop=true; if(S.playing) S.doc.img.play().catch(()=>{}); } }
   dirty=true;
 };
+const VID_MAX=60;
+// recorded WebM files can report an unknown (Infinity) duration
+const vidDur=v=>isFinite(v.duration)&&v.duration>0?v.duration:VID_MAX;
+function seekTo(v,t){ return new Promise(r=>{ let done=false; const fin=()=>{ if(done) return; done=true; v.removeEventListener('seeked',fin); r(); };
+  v.addEventListener('seeked',fin); v.currentTime=t; setTimeout(fin,2000); }); }
 $('#exGif').onclick=async()=>{
   const wl=+segVal('exGifW'), fps=+segVal('exGifFps'); const frames=Math.min(120,Math.max(2,Math.round(S.loop*fps)));
   busy(true,'Rendering frames…',0); await nextFrame();
   try{
     const C=makeCtx(buildSource(wl),'ex','pv'); const W=C.W,H=C.H; const raws=[];
-    for(let i=0;i<frames;i++){ const ph=i/frames; raws.push(readTex(renderStack(C,ph,Math.floor(ph*S.steps)%S.steps),W,H)); if(i%2===0){ busy(true,`Rendering frame ${i+1} / ${frames}`,i/frames*.45); await nextFrame(); } }
-    freeCtx(C);
+    // video: step through the clip from the current position; camera: grab live frames at the GIF rate
+    const v=isMoving()?S.doc.img:null, t0=v?v.currentTime:0, wasPaused=v?v.paused:true;
+    if(v&&S.doc.kind==='video') v.pause();
+    for(let i=0;i<frames;i++){ const ph=i/frames;
+      if(v){ if(S.doc.kind==='video') await seekTo(v,(t0+i/fps)%vidDur(v)); else await sleep(1000/fps); refreshSrc(C); }
+      raws.push(readTex(renderStack(C,ph,Math.floor(ph*S.steps)%S.steps),W,H)); if(i%2===0){ busy(true,`Rendering frame ${i+1} / ${frames}`,i/frames*.45); await nextFrame(); } }
+    freeCtx(C); if(v&&S.doc.kind==='video'&&!wasPaused) v.play().catch(()=>{});
     busy(true,'Building palette…',.47); await nextFrame();
     const total=W*H*frames; const stride=Math.max(1,Math.floor(total/90000)); const samp=new Uint8Array(Math.ceil(total/stride)*3+3); let n=0;
     for(let f=0;f<frames;f++){ const d=raws[f]; for(let p=(f*7)%stride;p<W*H;p+=stride){ samp[n*3]=d[p*4]; samp[n*3+1]=d[p*4+1]; samp[n*3+2]=d[p*4+2]; n++; } }
@@ -1712,11 +1998,30 @@ function medianCut(samp,count,n){
 }
 
 /* ---------- loop ---------- */
-let last=performance.now(), ft=[], lastTel=0, fps=0, lowStreak=0;
+let last=performance.now(), ft=[], lastTel=0, fps=0, lowStreak=0, lastVT=-1, vfcFlag=false, vfcEl=null;
+/* true when the video or camera has a new frame since the last upload */
+function srcFresh(){
+  const v=S.doc.img;
+  if(v.requestVideoFrameCallback){
+    if(vfcEl!==v){ vfcEl=v; vfcFlag=true; const cb=()=>{ if(vfcEl!==v) return; vfcFlag=true; v.requestVideoFrameCallback(cb); }; v.requestVideoFrameCallback(cb); }
+    const f=vfcFlag; vfcFlag=false; return f;
+  }
+  if(S.doc.kind==='camera') return true;
+  const t=v.currentTime; if(t!==lastVT){ lastVT=t; return true; } return false;
+}
+function updVidPos(){
+  if(S.doc.kind!=='video'||vidScrub) return; const v=S.doc.img; const now=performance.now(); if(now-(updVidPos.t||0)<200) return; updVidPos.t=now;
+  $('#vidPos').max=isFinite(v.duration)?v.duration:1; $('#vidPos').value=v.currentTime; $('#vidOut').textContent=`${v.currentTime.toFixed(1)} / ${isFinite(v.duration)?v.duration.toFixed(1):'?'} s`;
+}
+let vidScrub=false;
+$('#vidPos').addEventListener('input',e=>{ if(S.doc.kind!=='video') return; vidScrub=true; const v=S.doc.img; v.currentTime=+e.target.value; $('#vidOut').textContent=`${v.currentTime.toFixed(1)} s`; });
+$('#vidPos').addEventListener('change',()=>{ vidScrub=false; });
+$('#vidSound').addEventListener('change',e=>{ if(S.doc.kind!=='video') return; S.doc.img.muted=!e.target.checked; if(S.playing) S.doc.img.play().catch(()=>{}); });
 function frame(now){
   requestAnimationFrame(frame); const dt=Math.min(.1,(now-last)/1000); last=now;
   if(S.exporting||!PV) return;
   if(S.playing){ S.phase=(S.phase+dt/S.loop)%1; dirty=true; ft.push(dt); if(ft.length>60) ft.shift(); }
+  if(isMoving()&&srcFresh()){ refreshSrc(PV); dirty=true; updVidPos(); }
   if(dirty){ dirty=false; const out=S.compare?PV.src:renderStack(PV,S.phase,curStep()); present(out,PV.W,PV.H); }
   if(now-lastTel>250){ lastTel=now; fps=ft.length?Math.round(ft.length/ft.reduce((a,b)=>a+b,0)):0; telemetry(); autoQuality(); }
 }
@@ -1730,6 +2035,7 @@ function telemetry(){
   $('#telemetry').innerHTML=`<span class="${S.playing?'live':''}"><b>${S.compare?'ORIGINAL':S.playing?'● LIVE':'❚❚ FROZEN'}</b></span>
    <span>T <b>${t.toFixed(2)}</b> / ${S.loop.toFixed(1)} s</span><span>STEP <b>${String(curStep()+1).padStart(2,'0')}</b>/${S.steps}</span>
    <span>FPS <b>${S.playing?fps:'--'}</b></span><span>PREVIEW <b>${PV.W}×${PV.H}</b>${S.pvScale<1?` · <button id="bHQ">back to 100%</button>`:''}</span>
+   <span>SOURCE <b>${SRC_LABEL[S.doc.kind]}</b></span><span>ZOOM <b>${Math.round(S.view.z*100)}%</b></span>
    <span>LAYERS <b>${S.layers.filter(l=>l.on).length}</b>/${S.layers.length}</span>`;
   const hq=$('#bHQ'); if(hq) hq.onclick=()=>{ S.pvScale=1; lowStreak=-40; rebuildPreview(); };
 }
@@ -1763,14 +2069,134 @@ function makeSample(){
   return c;
 }
 
+/* ---------- autosave (IndexedDB: the photo or video file, layers, placed images, painted masks) ---------- */
+const DB={db:null,ok:true};
+function idb(){
+  if(DB.db) return Promise.resolve(DB.db);
+  return new Promise((res,rej)=>{ let r; try{ r=indexedDB.open('voyager',1); }catch(e){ rej(e); return; }
+    r.onupgradeneeded=()=>r.result.createObjectStore('kv'); r.onsuccess=()=>res(DB.db=r.result); r.onerror=()=>rej(r.error); });
+}
+async function kv(op,key,val){
+  const db=await idb(); return new Promise((res,rej)=>{ const tx=db.transaction('kv',op==='get'?'readonly':'readwrite'); const st=tx.objectStore('kv');
+    const r=op==='get'?st.get(key):op==='del'?st.delete(key):st.put(val,key); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); });
+}
+const VIDEO_KEEP_MAX=250e6;
+let restoring=false, saveT=0, saveWarned=false;
+function saveFailed(e){ console.warn('autosave',e); DB.ok=false; $('#saveNote').textContent='This browser is not keeping your work. Export before closing the tab.'; if(!saveWarned){ saveWarned=true; toast('Autosave is off in this browser. Export before you close the tab.'); } }
+async function saveDoc(){
+  if(restoring) return; const d=S.doc;
+  if(d.kind==='sample'||d.kind==='camera'){ try{ await kv('del','doc'); }catch(e){} return; }
+  if(!d.blob) return;
+  if(d.kind==='video'&&d.blob.size>VIDEO_KEEP_MAX){ try{ await kv('del','doc'); }catch(e){} toast('This video is too big to keep after a reload. Your layers still save.'); return; }
+  try{ await kv('put','doc',{blob:d.blob,kind:d.kind,name:d.name,rot:d.rot,flip:d.flip,aspect:d.aspect}); }catch(e){ saveFailed(e); }
+}
+function maskBlob(L){ const m=L._mask; if(!m||!m.painted) return Promise.resolve(null);
+  if(m.blobVer===m.ver) return Promise.resolve(m.blob);
+  return new Promise(r=>m.c.toBlob(b=>{ m.blob=b; m.blobVer=m.ver; r(b); },'image/png')); }
+function scheduleSave(){ if(restoring) return; clearTimeout(saveT); saveT=setTimeout(saveState,700); }
+async function saveState(){
+  if(restoring||!DB.ok) return;
+  try{
+    const layers=[]; for(const L of S.layers){ const o=ser(L); delete o.id;
+      o.img=L._img&&L._img.blob?{blob:L._img.blob,name:L._img.name}:null; o.mask=await maskBlob(L); layers.push(o); }
+    const d=S.doc;
+    await kv('put','state',{v:1,layers,sel:S.layers.findIndex(l=>l.id===S.sel),loop:S.loop,steps:S.steps,preset:S.activePreset||null,
+      docMeta:{rot:d.rot,flip:d.flip,aspect:d.aspect}});  }catch(e){ saveFailed(e); }
+}
+async function restoreSaved(){
+  let st,doc; try{ [st,doc]=await Promise.all([kv('get','state'),kv('get','doc')]); }catch(e){ DB.ok=false; return false; }
+  if(!st&&!doc) return false;
+  restoring=true;
+  try{
+    let loaded=false;
+    if(doc&&doc.blob){ const meta=(st&&st.docMeta)||doc; loaded=await loadFile(doc.blob,{name:doc.name,doc:{rot:meta.rot|0,flip:!!meta.flip,aspect:meta.aspect in ASPECTS?meta.aspect:'orig'}}); }
+    if(!loaded) setDocImage(makeSample(),'sample');
+    if(st&&Array.isArray(st.layers)){
+      S.loop=clamp(+st.loop||2,.5,8); S.steps=clamp(Math.round(+st.steps||12),1,60); syncMotion();
+      const out=[];
+      for(const d of st.layers){ const c=cleanLayer(d); if(!c) continue; const L=newLayer(c[0],c[1]); if(!L) continue;
+        if(d.mask instanceof Blob){ try{ const bm=await createImageBitmap(d.mask); const m=ensureMask(L); m.x.drawImage(bm,0,0,m.w,m.h); m.painted=true; m.dirty=true; m.ver=++MASKV; L.maskOn=!!d.maskOn; }catch(e){} }
+        if(d.img&&d.img.blob instanceof Blob) await new Promise(r=>loadOverlay(L,d.img.blob,r,d.img.name));
+        out.push(L); }
+      S.layers=out; const si=st.sel|0; S.sel=out[si]?out[si].id:(out.length?out[out.length-1].id:null);
+      S.activePreset=PRESETS.some(p=>p.name===st.preset)?st.preset:null;
+    }
+  }finally{ restoring=false; }
+  return true;
+}
+function syncMotion(){ $('#loopLen').value=S.loop; $('#loopOut').textContent=S.loop.toFixed(1)+' s'; $('#steps').value=S.steps; $('#stepsOut').textContent=S.steps; }
+async function startOver(){
+  if(!confirm('Start over? This clears your photo, layers and painted masks from this browser. Saved stacks stay.')) return;
+  try{ await kv('del','state'); await kv('del','doc'); }catch(e){}
+  setDocImage(makeSample(),'sample'); applyStack(PRESETS[0].stack,PRESETS[0].name); showStart();
+}
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden'&&saveT){ clearTimeout(saveT); saveState(); } });
+window.addEventListener('beforeunload',e=>{ if(S.exporting||(!DB.ok&&HIST.s.length>1)){ e.preventDefault(); e.returnValue=''; } });
+
+/* ---------- share links: the stack (not the photo) packed into the URL hash ---------- */
+const b64u={
+  enc:u8=>{ let s=''; for(let i=0;i<u8.length;i+=0x8000) s+=String.fromCharCode.apply(null,u8.subarray(i,i+0x8000)); return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); },
+  dec:s=>{ const b=atob(s.replace(/-/g,'+').replace(/_/g,'/')); const u=new Uint8Array(b.length); for(let i=0;i<b.length;i++) u[i]=b.charCodeAt(i); return u; }
+};
+const r3=v=>typeof v==='number'?Math.round(v*1000)/1000:v;
+async function packStack(){
+  const l=S.layers.filter(L=>L.type!=='image').map(L=>{ const o=ser(L); delete o.id; delete o.maskOn; delete o.maskInv; delete o.lock;
+    o.p=o.p.map(r3); o.pt=o.pt.map(r3); o.vec=o.vec.map(r3); o.opacity=r3(o.opacity); if(!FXM[L.type].aux||FXM[L.type].aux!=='text') delete o.text; return o; });
+  const json=JSON.stringify({v:1,l,loop:S.loop,steps:S.steps});
+  if(window.CompressionStream){ try{ const s=new Blob([json]).stream().pipeThrough(new CompressionStream('deflate-raw')); return 'z'+b64u.enc(new Uint8Array(await new Response(s).arrayBuffer())); }catch(e){} }
+  return 'j'+b64u.enc(new TextEncoder().encode(json));
+}
+async function unpackStack(code){
+  const bytes=b64u.dec(code.slice(1)); let json;
+  if(code[0]==='z'){ const s=new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw')); json=await new Response(s).text(); }
+  else json=new TextDecoder().decode(bytes);
+  const o=JSON.parse(json); if(!o||!Array.isArray(o.l)) throw new Error('bad stack');
+  return {stack:o.l.slice(0,24).map(cleanLayer).filter(Boolean),loop:o.loop,steps:o.steps};
+}
+async function shareStack(){
+  if(!S.layers.some(L=>L.type!=='image')){ toast('Add an effect first.'); return; }
+  const url=location.href.split('#')[0]+'#s='+await packStack();
+  const extra=S.layers.some(L=>L.type==='image'||L.maskOn)?' Placed images, painted masks and your photo stay with you.':'';
+  if(COARSE&&navigator.share){ try{ await navigator.share({title:'VOYAGER stack',url}); return; }catch(e){ if(e&&e.name==='AbortError') return; } }
+  try{ await navigator.clipboard.writeText(url); toast('Link copied. Anyone who opens it gets this stack on their own photo.'+extra); }
+  catch(e){ prompt('Copy this link to share your stack:',url); }
+}
+async function loadSharedFromHash(){
+  const m=location.hash.match(/^#s=([zj][A-Za-z0-9_-]+)$/); if(!m) return false;
+  try{ const {stack,loop,steps}=await unpackStack(m[1]); if(!stack.length) throw new Error('empty');
+    if(typeof loop==='number') S.loop=clamp(loop,.5,8); if(typeof steps==='number') S.steps=clamp(Math.round(steps),1,60); syncMotion();
+    applyStack(stack,null); toast('Loaded a shared stack. Open your own photo to try it.'); }
+  catch(e){ console.warn(e); toast('That share link is broken or incomplete.'); }
+  history.replaceState(null,'',location.pathname+location.search); return true;
+}
+window.addEventListener('hashchange',()=>{ loadSharedFromHash().then(ok=>{ if(ok) hideStart(); }); });
+
+/* ---------- start screen ---------- */
+function showStart(){ $('#start').hidden=false; $('#tools').hidden=true; $('#zoomCtl').hidden=true; $('#hint').hidden=true; }
+function hideStart(){ $('#start').hidden=true; $('#tools').hidden=false; $('#zoomCtl').hidden=false; $('#hint').hidden=false; }
+$('#sOpen').onclick=()=>$('#file').click();
+$('#sCam').onclick=()=>startCamera();
+$('#sSample').onclick=()=>{ hideStart(); toast('Sample loaded. Open your own photo or video any time.'); };
+$('#bCam').onclick=()=>{ if(S.doc.kind==='camera') snapCamera(); else startCamera(); };
+$('#bSnap').onclick=snapCamera;
+$('#bCamSwitch').onclick=()=>startCamera(camFacing==='user'?'environment':'user');
+$('#bCamStop').onclick=()=>{ setDocImage(makeSample(),'sample'); showStart(); };
+$('#bReset').onclick=startOver;
+$('#bShare').onclick=shareStack;
+
 /* ---------- boot ---------- */
 (async function init(){
   try{ await Promise.race([Promise.all([document.fonts.load('48px "IBM Plex Mono"'),document.fonts.load('48px "Michroma"')]),sleep(2500)]); }catch(e){}
   buildAscii(); buildEmoji();
-  setDocImage(makeSample(),'sample');
   renderStacks(); updPlay();
-  S.layers=PRESETS[0].stack.map(([t,o])=>newLayer(t,o)); S.sel=S.layers[S.layers.length-1].id; S.activePreset=PRESETS[0].name;
-  commit(); renderAll(); setTool('touch');
+  const resumed=await restoreSaved();
+  if(!resumed){ setDocImage(makeSample(),'sample');
+    S.layers=PRESETS[0].stack.map(([t,o])=>newLayer(t,o)); S.sel=S.layers[S.layers.length-1].id; S.activePreset=PRESETS[0].name; }
+  const shared=await loadSharedFromHash();
+  // first visit: ask for a photo instead of dropping people onto the sample
+  if(!resumed&&!shared) showStart(); else hideStart();
+  if(resumed&&S.doc.kind!=='sample') toast('Welcome back. Your last session is restored.');
+  HIST.s=[]; HIST.i=-1; commit(); renderAll(); setTool('touch');
   requestAnimationFrame(frame);
 })();
 </script>
