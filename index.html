@@ -219,6 +219,10 @@ textarea{height:auto;min-height:52px;padding:6px 8px;resize:vertical;font:inheri
 .layer .lock svg{width:13px;height:13px}
 .layer .lock.on{color:var(--gold);opacity:1}
 .layer:hover .lock{opacity:1}
+.img-acts .lk{opacity:.6}
+.img-acts .lk.on{color:var(--gold);opacity:1}
+.zoom button.on{color:var(--gold)}
+.stage-view{touch-action:none}
 .start{position:absolute;inset:0;z-index:6;display:flex;align-items:center;justify-content:center;padding:16px;background:var(--stage);
   background-image:radial-gradient(circle,#1a1d2b 1px,transparent 1.2px);background-size:22px 22px}
 .start-card{max-width:420px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px;padding:32px 24px;border:1px dashed var(--line2);border-radius:6px;background:rgba(8,9,15,.85)}
@@ -378,8 +382,8 @@ textarea{height:auto;min-height:52px;padding:6px 8px;resize:vertical;font:inheri
       <p class="note">Saved in this browser. Painted masks and overlay photos are not included.</p>
     </details>
     <section class="sec">
-      <p class="note keys">Keys: Space freeze · O open · V camera · P place image · A add effect · R chaos · Shift R randomize layer · L lock layer · Delete removes the selected image or layer · T steer · B paint · X erase · \ hold original · + − 0 zoom · S share link · E export · Right-click or G hides the crosshair. Ctrl or pinch to zoom, scroll or middle-drag to pan.</p>
-      <p class="note touch-keys">Drag to steer. Two fingers zoom and move the view. With a placed image selected, two fingers resize and turn it instead.</p>
+      <p class="note keys">Keys: Space freeze · O open · V camera · P place image · A add effect · R chaos · Shift R randomize layer · L lock layer or placed image · Delete removes the selected image or layer · T steer · B paint · X erase · \ hold original · + − 0 zoom (Esc fits) · S share link · E export · Right-click or G hides the crosshair. Ctrl or pinch to zoom, scroll or middle-drag to pan.</p>
+      <p class="note touch-keys">Drag to steer. Two fingers zoom and move the view. With an unlocked placed image selected, two fingers resize and turn it instead; lock it to zoom over it.</p>
     </section>
   </aside>
 </div>
@@ -909,7 +913,7 @@ const FX_LIST = [
  modes:['Wide','Mono','Serif','Heavy'],modeLabel:'Font',c:['#f4ead2','#000000'],cLabels:['Color','Unused'],
  p:[['Size',.02,.5,.12,.005],['Tracking',-.1,.6,.1,.01],['Glow',0,1,0]],
  glsl:`vec4 fx(vec2 uv){ vec4 t=texture(uAux,uv); vec3 b=T(uv).rgb; vec3 g=mix(b,uC0,t.g*P2); return vec4(mix(g,uC0,t.r),1.0);}`},
-{id:'image',name:'OVERLAY',cat:'Type',aux:'image',live:false,desc:'Places another image on top of your photo, like a silhouette or a cutout. Transparent PNGs keep their transparency. Drag to move, scroll or pinch to resize.',
+{id:'image',name:'OVERLAY',cat:'Type',aux:'image',live:false,desc:'Places another image on top of your photo, like a silhouette or a cutout. Transparent PNGs keep their transparency. Drag to move, scroll to resize, and lock it once it is where you want it.',
  modes:['Fit','Fill','Tile'],
  p:[['Scale',.05,3,.6,.01],['Rotate',-180,180,0,1],['Key out dark',0,1,0],['Key out light',0,1,0]],
  glsl:`vec4 fx(vec2 uv){
@@ -1321,12 +1325,13 @@ function setDocImage(img,name,kind,blob,o){
   for(const L of RT.values()){ if(L._field){ L._field.tex.forEach(t=>gl.deleteTexture(t)); L._field.fb.forEach(f=>gl.deleteFramebuffer(f)); L._field=null; } }
   for(const L of RT.values()){ if(L._fb&&L._fb.pv) L._fb.pv.fresh=true; }
   setView(1,0,0); rebuildPreview(); renderAspects(); updSourceUI(); hideStart(); saveDoc();
+  if(!restoring) commit();
 }
-/* stop whatever the old source was doing: pause video, end camera stream */
+/* stop whatever the old source was doing. A video only pauses so Undo can bring it back; a camera stream ends for good. */
 function releaseDoc(){
   const d=S.doc; if(!d||!d.img) return;
-  if(d.kind==='video'){ d.img.pause(); if(d.img._url) URL.revokeObjectURL(d.img._url); d.img.removeAttribute('src'); d.img.load(); }
-  if(d.kind==='camera'&&d.img.srcObject){ d.img.srcObject.getTracks().forEach(t=>t.stop()); d.img.srcObject=null; }
+  if(d.kind==='video') d.img.pause();
+  if(d.kind==='camera'){ if(d.img.srcObject){ d.img.srcObject.getTracks().forEach(t=>t.stop()); d.img.srcObject=null; } d.released=true; }
 }
 const fileName=f=>(f.name||'photo').replace(/\.[^.]+$/,'');
 function loadFile(f,o){
@@ -1416,10 +1421,18 @@ function snap(){
   for(const L of S.layers){ if(!L._mask) continue; let ms=maskSnap.get(L.id+':'+L._mask.ver);
     if(!ms){ ms={ver:L._mask.ver,w:L._mask.w,h:L._mask.h,data:L._mask.x.getImageData(0,0,L._mask.w,L._mask.h)}; maskSnap.set(L.id+':'+L._mask.ver,ms); }
     masks[L.id]=ms; }
-  return {layers:S.layers.map(ser),sel:S.sel,masks};
+  const d=S.doc;
+  return {layers:S.layers.map(ser),sel:S.sel,masks,doc:{ref:d,rot:d.rot,flip:d.flip,aspect:d.aspect},loop:S.loop,steps:S.steps};
 }
+/* everything that makes two snapshots look different to the user (mask pixels by version, the photo by identity) */
+const DOC_IDS=new WeakMap(); let docSeq=0;
+const docId=d=>{ if(!DOC_IDS.has(d)) DOC_IDS.set(d,++docSeq); return DOC_IDS.get(d); };
+function snapKey(h){ const d=h.doc; return JSON.stringify([h.layers,h.sel,Object.entries(h.masks).map(([id,m])=>id+':'+m.ver),docId(d.ref),d.rot,d.flip,d.aspect,h.loop,h.steps]); }
 function commit(){
-  HIST.s=HIST.s.slice(0,HIST.i+1); HIST.s.push(snap());
+  const h=snap(); h.key=snapKey(h);
+  // a click that changed nothing must not create an undo step, or Ctrl+Z appears to do nothing
+  if(HIST.i>=0&&HIST.s[HIST.i].key===h.key){ HIST.s[HIST.i]=h; updUndo(); return; }
+  HIST.s=HIST.s.slice(0,HIST.i+1); HIST.s.push(h);
   if(HIST.s.length>60) HIST.s.shift(); HIST.i=HIST.s.length-1;
   // drop mask snapshots nothing references
   const live=new Set(); HIST.s.forEach(h=>Object.entries(h.masks).forEach(([id,ms])=>live.add(id+':'+ms.ver)));
@@ -1433,7 +1446,18 @@ function restore(h){
     const ms=h.masks[d.id];
     if(ms){ const m=ensureMask(L); if(m.w===ms.w&&m.h===ms.h){ m.x.putImageData(ms.data,0,0); m.ver=ms.ver; m.dirty=true; m.painted=true; } }
     return L; });
-  S.sel=h.sel; renderAll(); dirty=true;
+  S.sel=h.sel;
+  // photo or video, and its crop, rotation and flip
+  const hd=h.doc; let rebuild=false;
+  if(hd.ref!==S.doc&&!hd.ref.released){
+    if(S.doc.kind==='video') S.doc.img.pause(); else if(S.doc.kind==='camera') releaseDoc();
+    S.doc=hd.ref; if(S.doc.kind==='video'&&S.playing) S.doc.img.play().catch(()=>{});
+    setView(1,0,0); updSourceUI(); hideStart(); rebuild=true;
+  }
+  if(hd.ref===S.doc&&(S.doc.rot!==hd.rot||S.doc.flip!==hd.flip||S.doc.aspect!==hd.aspect)){ S.doc.rot=hd.rot; S.doc.flip=hd.flip; S.doc.aspect=hd.aspect; setView(1,0,0); rebuild=true; }
+  if(rebuild){ rebuildPreview(); renderAspects(); saveDoc(); }
+  if(S.loop!==h.loop||S.steps!==h.steps){ S.loop=h.loop; S.steps=h.steps; syncMotion(); }
+  renderAll(); dirty=true;
 }
 function undo(){ if(HIST.i>0){ HIST.i--; restore(HIST.s[HIST.i]); scheduleSave(); } updUndo(); }
 function redo(){ if(HIST.i<HIST.s.length-1){ HIST.i++; restore(HIST.s[HIST.i]); scheduleSave(); } updUndo(); }
@@ -1453,7 +1477,11 @@ function randomizeLayer(L){
   L.vec=[(Math.random()-.5)*.4,(Math.random()-.5)*.4]; L.seed=1+Math.floor(Math.random()*9000);
 }
 function randomizeSel(){ const L=selLayer(); if(!L) return; randomizeLayer(L); S.activePreset=null; commit(); renderAll(); dirty=true; toast(FXM[L.type].name+' randomized'); }
-function toggleLock(L){ if(!L) return; L.lock=!L.lock; commit(); renderLayers(); renderInspector(); toast(L.lock?FXM[L.type].name+' locked. Chaos keeps it.':FXM[L.type].name+' unlocked.'); }
+function toggleLock(L){ if(!L) return; L.lock=!L.lock; commit(); renderAll();
+  const what=L.type==='image'?'Image':L.type==='text'?'Text':FXM[L.type].name;
+  toast(isPlaced(L)?(L.lock?what+' locked in place. Drags and pinches now go to the canvas.':what+' unlocked. Drag to move it, scroll to resize.')
+    :(L.lock?what+' locked. Chaos keeps it.':what+' unlocked.')); }
+const lockTitle=L=>isPlaced(L)?(L.lock?'Unlock so you can move and resize it':'Lock in place so zooming and dragging cannot move it'):(L.lock?'Unlock: Chaos may replace it':'Lock: Chaos keeps this layer');
 function chaos(){
   const kept=S.layers.filter(l=>l.type==='image'||l.lock);
   const has3d=kept.some(l=>FXM[l.type].kind==='3d');
@@ -1488,7 +1516,7 @@ function renderLayers(){
     return `<li class="layer${L.id===S.sel?' sel':''}${L.on?'':' off'}" data-id="${L.id}" tabindex="0" aria-current="${L.id===S.sel}">
       <button class="eye" data-eye="${L.id}" title="${L.on?'Hide':'Show'} layer" aria-label="${L.on?'Hide':'Show'} ${fx.name}">${L.on?'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M1.5 8S4 3.5 8 3.5 14.5 8 14.5 8 12 12.5 8 12.5 1.5 8 1.5 8z"/><circle cx="8" cy="8" r="2"/></svg>':'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 2l12 12M4 5.5C2.6 6.7 1.5 8 1.5 8S4 12.5 8 12.5c1.3 0 2.4-.4 3.4-1M6.5 3.7c.5-.1 1-.2 1.5-.2 4 0 6.5 4.5 6.5 4.5s-.6 1-1.6 2.1"/></svg>'}</button>
       <div class="ln"><b>${fx.name}${L.type==='image'&&L._img?' · '+esc(L._img.name.toUpperCase()):''}</b><small>${meta}</small></div>
-      <button class="lock${L.lock?' on':''}" data-lock="${L.id}" title="${L.lock?'Unlock: Chaos may replace it':'Lock: Chaos keeps this layer'} (L)" aria-label="${L.lock?'Unlock':'Lock'} ${fx.name}" aria-pressed="${!!L.lock}">${L.lock?LOCK_ON:LOCK_OFF}</button>
+      <button class="lock${L.lock?' on':''}" data-lock="${L.id}" title="${lockTitle(L)} (L)" aria-label="${L.lock?'Unlock':'Lock'} ${fx.name}" aria-pressed="${!!L.lock}">${L.lock?LOCK_ON:LOCK_OFF}</button>
       <div class="mv"><button data-up="${L.id}" title="Move up" aria-label="Move up">▲</button><button data-down="${L.id}" title="Move down" aria-label="Move down">▼</button></div></li>`; }).join('');
 }
 function fmtV(v,q){ const st=stepOf(q); return st>=1?String(Math.round(v)):(Math.abs(v)<10?v.toFixed(2):v.toFixed(1)); }
@@ -1497,7 +1525,7 @@ function renderInspector(){
   if(!L){ box.innerHTML='<div class="sec-h"><h2>Layer</h2></div><p class="empty">Pick a layer or add an effect.</p>'; return; }
   const fx=FXM[L.type]; let h='';
   h+=`<div class="ins-head"><div><div class="ins-name">${fx.name}</div><div class="ins-cat">${fx.cat}${fx.feedback?' · feedback':''}</div></div>
-      <div class="ins-acts"><button class="btn" data-act="rand" title="New random settings for this layer (Shift R)">Randomize</button><button class="btn" data-act="dup" title="Duplicate layer">Duplicate</button><button class="btn" data-act="del" title="Delete layer">Delete</button></div></div>
+      <div class="ins-acts">${isPlaced(L)?`<button class="btn${L.lock?' on':''}" data-act="lock" title="${lockTitle(L)} (L)">${L.lock?'Unlock':'Lock'}</button>`:''}<button class="btn" data-act="rand" title="New random settings for this layer (Shift R)">Randomize</button><button class="btn" data-act="dup" title="Duplicate layer">Duplicate</button><button class="btn" data-act="del" title="Delete layer">Delete</button></div></div>
       <p class="ins-desc">${fx.desc}</p>`;
   if(fx.modes) h+=`<div class="field"><div class="field-h"><span>${fx.modeLabel||'Mode'}</span></div><div class="seg">${fx.modes.map((m,i)=>`<button data-mode="${i}" class="${L.mode===i?'on':''}">${m}</button>`).join('')}</div></div>`;
   if(fx.aux==='text') h+=`<div class="field"><div class="field-h"><span>Text</span></div><textarea id="f-text" data-k="text" rows="2">${esc(L.text)}</textarea></div>`;
@@ -1534,7 +1562,8 @@ function updHint(){
   if(!L) t='Add an effect to start.';
   else if(S.tool!=='touch') t=S.tool==='paint'?'Brush over the photo to reveal '+fx.name+' there.':'Brush over the photo to hide '+fx.name+' there.';
   else if(L.type==='liquify') t='Drag on the photo to melt it.';
-  else if(L.type==='image') t=L._img?'Drag to move. Scroll or pinch to resize. Shift + scroll or twist to rotate.':'Choose an image for this overlay.';
+  else if(isPlaced(L)&&L.lock) t=(L.type==='image'?'Image':'Text')+' is locked in place. Unlock it under Images or Layers to move it.';
+  else if(L.type==='image') t=L._img?'Drag to move. Scroll or two fingers to resize, Shift + scroll or twist to rotate. Lock it when it is placed.':'Choose an image for this overlay.';
   else if(fx.usesPt&&fx.usesVec) t='Drag on the image. Where you press and how far you drag both steer '+fx.name+'.';
   else if(fx.usesPt) t='Tap or drag on the image to place '+fx.name+'.';
   else if(fx.usesVec) t='Drag on the image to steer '+fx.name+'.';
@@ -1557,8 +1586,8 @@ function renderImages(){
     <div class="img-acts"><button data-replace="1" title="Swap in a different base photo">Replace</button></div></li>`;
   h+=imgs.map(L=>`<li class="img-row${L.id===S.sel?' sel':''}${L.on?'':' off'}" data-img="${L.id}" tabindex="0" aria-current="${L.id===S.sel}">
     ${L._img&&L._img.thumb?`<img class="thumb" src="${L._img.thumb}" alt="">`:'<span class="thumb"></span>'}
-    <div class="img-meta"><b>${esc(L._img?L._img.name.toUpperCase():'EMPTY OVERLAY')}</b><small>ON TOP · ${Math.round(L.p[0]*100)}% · ${Math.round(L.p[1]||0)}°</small></div>
-    <div class="img-acts"><button data-imgeye="${L.id}" title="${L.on?'Hide':'Show'}" aria-label="${L.on?'Hide':'Show'} image">${L.on?EYE_ON:EYE_OFF}</button><button class="rm" data-imgdel="${L.id}" title="Remove this image">Remove</button></div></li>`).join('');
+    <div class="img-meta"><b>${esc(L._img?L._img.name.toUpperCase():'EMPTY OVERLAY')}</b><small>ON TOP · ${Math.round(L.p[0]*100)}% · ${Math.round(L.p[1]||0)}°${L.lock?' · LOCKED':''}</small></div>
+    <div class="img-acts"><button class="lk${L.lock?' on':''}" data-imglock="${L.id}" title="${lockTitle(L)} (L)" aria-label="${L.lock?'Unlock':'Lock'} image" aria-pressed="${!!L.lock}">${L.lock?LOCK_ON:LOCK_OFF}</button><button data-imgeye="${L.id}" title="${L.on?'Hide':'Show'}" aria-label="${L.on?'Hide':'Show'} image">${L.on?EYE_ON:EYE_OFF}</button><button class="rm" data-imgdel="${L.id}" title="Remove this image">Remove</button></div></li>`).join('');
   if(!imgs.length) h+=`<li class="note" style="margin:4px 0 0">Drop or place an image to put it on top of your photo.</li>`;
   $('#imgs').innerHTML=h; const sl=selLayer(); $('#bRemoveImg').disabled=!(sl&&sl.type==='image');
 }
@@ -1583,7 +1612,7 @@ function setView(z,x,y){
   z=clamp(z,1,12); const w=frameEl.offsetWidth*z, h=frameEl.offsetHeight*z;
   if(z<=1.001){ z=1; x=0; y=0; } else { x=clamp(x,-w/2,w/2); y=clamp(y,-h/2,h/2); }
   S.view={z,x,y}; frameEl.style.transform=z===1?'':`translate(${x}px,${y}px) scale(${z})`;
-  frameEl.classList.toggle('px',z>=2); $('#bZoomFit').textContent=Math.round(z*100)+'%';
+  frameEl.classList.toggle('px',z>=2); const f=$('#bZoomFit'); f.textContent=Math.round(z*100)+'%'; f.classList.toggle('on',z>1); f.title=z>1?'Back to fit (0 or Esc)':'Fit to screen (0)';
 }
 /* zoom by factor k keeping the screen point (cx,cy) fixed */
 function zoomAt(k,cx,cy){
@@ -1594,20 +1623,44 @@ function zoomAt(k,cx,cy){
   setView(z2,cx-ox-lx*z2,cy-oy-ly*z2);
 }
 $('#bZoomIn').onclick=()=>zoomAt(1.5); $('#bZoomOut').onclick=()=>zoomAt(1/1.5); $('#bZoomFit').onclick=()=>setView(1,0,0);
-$('#stageView').addEventListener('wheel',e=>{
-  if(!$('#start').hidden) return;
-  const L=selLayer(); const onImg=e.target===hud&&isPlaced(L)&&S.tool==='touch';
-  if(onImg) return; // the HUD handler resizes the placed image
-  if(e.ctrlKey||e.metaKey){ e.preventDefault(); zoomAt(Math.exp(-e.deltaY*0.01),e.clientX,e.clientY); }
-  else if(S.view.z>1){ e.preventDefault(); setView(S.view.z,S.view.x-e.deltaX,S.view.y-e.deltaY); }
+/* two-finger pinch on the view: zoom about the pinch centre, then follow it */
+function pinchView(p,pi){
+  const z2=clamp(p.z0*pi.d/Math.max(1,p.d),1,12); const fr=frameEl.getBoundingClientRect();
+  const ox=fr.left+fr.width/2-S.view.x, oy=fr.top+fr.height/2-S.view.y;
+  const lx=(p.mid[0]-ox-p.x0)/p.z0, ly=(p.mid[1]-oy-p.y0)/p.z0;
+  setView(z2,pi.mid[0]-ox-lx*z2,pi.mid[1]-oy-ly*z2);
+}
+const twoInfo=m=>{ const [a,b]=[...m.values()]; return {d:Math.hypot(b[0]-a[0],b[1]-a[1]),mid:[(a[0]+b[0])/2,(a[1]+b[1])/2]}; };
+const sv=$('#stageView'), onControls=e=>e.target.closest&&e.target.closest('.tools,.zoom,.start,.hint');
+sv.addEventListener('wheel',e=>{
+  if(!$('#start').hidden||onControls(e)) return;
+  // Ctrl/Cmd + scroll and trackpad pinch always zoom the view, never the placed image
+  if(e.ctrlKey||e.metaKey){ e.preventDefault(); zoomAt(Math.exp(-e.deltaY*0.01),e.clientX,e.clientY); return; }
+  const L=selLayer(); if(e.target===hud&&movable(L)&&S.tool==='touch') return; // plain scroll resizes an unlocked placed image
+  if(S.view.z>1){ e.preventDefault(); setView(S.view.z,S.view.x-e.deltaX,S.view.y-e.deltaY); }
 },{passive:false});
-let panDrag=null;
-$('#stageView').addEventListener('pointerdown',e=>{
-  if(e.button!==1&&!(e.target===$('#stageView')&&S.view.z>1&&e.pointerType==='mouse')) return;
-  e.preventDefault(); panDrag={x:e.clientX,y:e.clientY,vx:S.view.x,vy:S.view.y,id:e.pointerId}; $('#stageView').setPointerCapture(e.pointerId);
+// Safari sends trackpad pinches as gesture events instead of Ctrl + wheel
+let gz=null;
+sv.addEventListener('gesturestart',e=>{ e.preventDefault(); gz={z:S.view.z,x:e.clientX,y:e.clientY}; });
+sv.addEventListener('gesturechange',e=>{ if(!gz) return; e.preventDefault(); zoomAt(gz.z*e.scale/S.view.z,gz.x,gz.y); });
+sv.addEventListener('gestureend',e=>{ e.preventDefault(); gz=null; });
+/* pan with the middle button anywhere, or by dragging the empty area around the image; pinch there with two fingers */
+let panDrag=null, vpinch=null; const VPT=new Map();
+sv.addEventListener('pointerdown',e=>{
+  if(onControls(e)||!$('#start').hidden) return;
+  const bg=e.target!==hud;
+  if(e.pointerType==='touch'&&bg){ e.preventDefault(); capture(sv,e); VPT.set(e.pointerId,[e.clientX,e.clientY]);
+    if(VPT.size===2){ panDrag=null; vpinch={...twoInfo(VPT),z0:S.view.z,x0:S.view.x,y0:S.view.y}; }
+    else if(VPT.size===1&&S.view.z>1) panDrag={x:e.clientX,y:e.clientY,vx:S.view.x,vy:S.view.y,id:e.pointerId};
+    return; }
+  if(e.button!==1&&!(bg&&S.view.z>1&&e.button===0)) return;
+  e.preventDefault(); panDrag={x:e.clientX,y:e.clientY,vx:S.view.x,vy:S.view.y,id:e.pointerId}; capture(sv,e);
 });
-$('#stageView').addEventListener('pointermove',e=>{ if(panDrag&&e.pointerId===panDrag.id) setView(S.view.z,panDrag.vx+e.clientX-panDrag.x,panDrag.vy+e.clientY-panDrag.y); });
-['pointerup','pointercancel'].forEach(t=>$('#stageView').addEventListener(t,e=>{ if(panDrag&&e.pointerId===panDrag.id) panDrag=null; }));
+sv.addEventListener('pointermove',e=>{
+  if(VPT.has(e.pointerId)){ VPT.set(e.pointerId,[e.clientX,e.clientY]); if(vpinch&&VPT.size===2){ pinchView(vpinch,twoInfo(VPT)); drawHud(); return; } }
+  if(panDrag&&e.pointerId===panDrag.id) setView(S.view.z,panDrag.vx+e.clientX-panDrag.x,panDrag.vy+e.clientY-panDrag.y);
+});
+['pointerup','pointercancel'].forEach(t=>sv.addEventListener(t,e=>{ VPT.delete(e.pointerId); if(VPT.size<2) vpinch=null; if(panDrag&&e.pointerId===panDrag.id) panDrag=null; }));
 
 let hover=null, drag=null;
 function drawHud(){
@@ -1641,37 +1694,37 @@ function strokeMask(L,a,b,erase){
   m.dirty=true; m.ver=++MASKV; dirty=true;
 }
 const PTRS=new Map(); let pinch=null, wheelT=0;
+const capture=(el,e)=>{ try{ el.setPointerCapture(e.pointerId); }catch(err){} };
 const isPlaced=L=>L&&(L.type==='image'||L.type==='text');
+/* a placed image or text that is not locked follows drags, scrolls and pinches */
+const movable=L=>isPlaced(L)&&!L.lock;
 function pinchInfo(){ const [a,b]=[...PTRS.values()]; const dx=b[0]-a[0], dy=b[1]-a[1]; return {d:Math.hypot(dx,dy),ang:Math.atan2(dy,dx),mid:[(a[0]+b[0])/2,(a[1]+b[1])/2]}; }
 function syncSlider(i){ const L=selLayer(); const el=$('#f-p'+i), o=$('#o-p'+i); if(el) el.value=L.p[i]; if(o) o.textContent=fmtV(L.p[i],FXM[L.type].p[i]); }
 hud.addEventListener('pointerdown',e=>{
   if(e.button===2||e.button===1) return;
-  const L=selLayer(); e.preventDefault(); hud.setPointerCapture(e.pointerId);
+  const L=selLayer(); e.preventDefault(); capture(hud,e);
   PTRS.set(e.pointerId,[e.clientX,e.clientY]);
   if(PTRS.size===2){ drag=null; const pi=pinchInfo();
-    if(L&&S.tool==='touch'&&isPlaced(L)){ const r=hud.getBoundingClientRect(); pinch={...pi,s0:L.p[0],r0:L.p[1]||0,pt0:L.pt.slice(),r}; }
+    if(L&&S.tool==='touch'&&movable(L)){ const r=hud.getBoundingClientRect(); pinch={...pi,s0:L.p[0],r0:L.p[1]||0,pt0:L.pt.slice(),r}; }
     else pinch={...pi,view:true,z0:S.view.z,x0:S.view.x,y0:S.view.y};
     return; }
   if(PTRS.size>1||!L) return;
   const uv=toUV(e); hover=uv; drag={start:uv,last:uv,sv:L.vec.slice(),off:[L.pt[0]-uv[0],L.pt[1]-uv[1]]}; const fx=FXM[L.type];
-  if(S.tool==='touch'){ if(L.type!=='liquify'&&fx.usesPt&&!isPlaced(L)) L.pt=uv; }
+  if(S.tool==='touch'){ if(isPlaced(L)&&L.lock){ drag.pan={x:e.clientX,y:e.clientY,vx:S.view.x,vy:S.view.y}; if(S.view.z<=1) toast((L.type==='image'?'Image':'Text')+' is locked. Unlock it to move it.'); }
+    else if(L.type!=='liquify'&&fx.usesPt&&!isPlaced(L)) L.pt=uv; }
   else { beginPaint(L,S.tool==='erase'); strokeMask(L,uv,uv,S.tool==='erase'); }
   dirty=true; drawHud(); updSteer();
 });
 hud.addEventListener('pointermove',e=>{
   if(PTRS.has(e.pointerId)) PTRS.set(e.pointerId,[e.clientX,e.clientY]);
   const uv=toUV(e); hover=uv; const L=selLayer();
-  if(pinch&&pinch.view&&PTRS.size===2){ const pi=pinchInfo();
-    // zoom about the pinch centre, then follow its movement
-    const z2=clamp(pinch.z0*pi.d/Math.max(1,pinch.d),1,12); const fr=frameEl.getBoundingClientRect();
-    const ox=fr.left+fr.width/2-S.view.x, oy=fr.top+fr.height/2-S.view.y;
-    const lx=(pinch.mid[0]-ox-pinch.x0)/pinch.z0, ly=(pinch.mid[1]-oy-pinch.y0)/pinch.z0;
-    setView(z2,pi.mid[0]-ox-lx*z2,pi.mid[1]-oy-ly*z2); drawHud(); return; }
+  if(pinch&&pinch.view&&PTRS.size===2){ pinchView(pinch,pinchInfo()); drawHud(); return; }
   if(pinch&&L&&PTRS.size===2){ const pi=pinchInfo();
     L.p[0]=clamp(pinch.s0*pi.d/Math.max(1,pinch.d),.05,3); syncSlider(0);
     if(L.type==='image'){ let r=pinch.r0-(pi.ang-pinch.ang)*180/Math.PI; r=((r+540)%360)-180; L.p[1]=Math.round(r); syncSlider(1); }
     L.pt=[clamp(pinch.pt0[0]+(pi.mid[0]-pinch.mid[0])/pinch.r.width,-.5,1.5),clamp(pinch.pt0[1]-(pi.mid[1]-pinch.mid[1])/pinch.r.height,-.5,1.5)];
     dirty=true; drawHud(); return; }
+  if(drag&&drag.pan){ setView(S.view.z,drag.pan.vx+e.clientX-drag.pan.x,drag.pan.vy+e.clientY-drag.pan.y); drawHud(); return; }
   if(drag&&L){ const fx=FXM[L.type];
     if(S.tool==='touch'){
       if(L.type==='liquify'){ const r=hud.getBoundingClientRect(); brushField(L,uv,[uv[0]-drag.last[0],uv[1]-drag.last[1]],S.brush/r.height*0.5); }
@@ -1683,9 +1736,9 @@ hud.addEventListener('pointermove',e=>{
 });
 const endDrag=e=>{ PTRS.delete(e.pointerId); if(pinch){ if(PTRS.size<2){ if(!pinch.view){ commit(); renderImages(); } pinch=null; } return; } if(drag){ drag=null; commit(); renderLayers(); renderImages(); } };
 hud.addEventListener('pointerup',endDrag); hud.addEventListener('pointercancel',endDrag);
-hud.addEventListener('wheel',e=>{ const L=selLayer(); if(!isPlaced(L)||S.tool!=='touch') return; e.preventDefault();
+hud.addEventListener('wheel',e=>{ const L=selLayer(); if(!movable(L)||S.tool!=='touch'||e.ctrlKey||e.metaKey) return; e.preventDefault();
   if(L.type==='image'&&(e.shiftKey||e.altKey)){ let r=(L.p[1]||0)+e.deltaY*0.15; r=((r+540)%360)-180; L.p[1]=Math.round(r); syncSlider(1); }
-  else { L.p[0]=clamp(L.p[0]*Math.exp(-e.deltaY*(e.ctrlKey?0.01:0.0015)),.02,3); syncSlider(0); }
+  else { L.p[0]=clamp(L.p[0]*Math.exp(-e.deltaY*0.0015),.02,3); syncSlider(0); }
   dirty=true; drawHud(); clearTimeout(wheelT); wheelT=setTimeout(()=>{ commit(); renderImages(); },350); },{passive:false});
 function toggleGuides(){ S.hideGuides=!S.hideGuides; hud.style.cursor=S.hideGuides?'default':''; drawHud(); toast(S.hideGuides?'Crosshair hidden. Right-click the image to bring it back.':'Crosshair showing.'); }
 hud.addEventListener('contextmenu',e=>{ e.preventDefault(); toggleGuides(); });
@@ -1732,6 +1785,7 @@ insp.addEventListener('click',e=>{
   if(a==='del'){ deleteLayer(L); return; }
   else if(a==='dup'){ const n=newLayer(L.type,ser(L)); n.seed=L.seed; n._img=L._img; if(L._mask){ const m=ensureMask(n); m.x.drawImage(L._mask.c,0,0,m.w,m.h); m.painted=true; m.dirty=true; m.ver=++MASKV; n.maskOn=L.maskOn; } S.layers.splice(i+1,0,n); S.sel=n.id; }
   else if(a==='rand'){ randomizeSel(); return; }
+  else if(a==='lock'){ toggleLock(L); return; }
   else if(a==='reseed') L.seed=1+Math.floor(Math.random()*9000);
   else if(a==='center'){ const fx=FXM[L.type]; L.pt=(fx.pt||[.5,.5]).slice(); L.vec=(fx.vec||[.14,.05]).slice(); }
   else if(a==='maskclear'){ const m=ensureMask(L); m.x.fillStyle='#000'; m.x.fillRect(0,0,m.w,m.h); m.painted=true; m.dirty=true; m.ver=++MASKV; L.maskOn=true; }
@@ -1755,7 +1809,7 @@ function placeImage(f){
   if(!f) return; if(f.type&&!f.type.startsWith('image/')){ toast('That file is not an image.'); return; }
   const L=newLayer('image',{}); L.pt=[.5,.5];
   loadOverlay(L,f,()=>{ let k=0; while(S.layers[k]&&S.layers[k].type==='image') k++; S.layers.splice(k,0,L); S.sel=L.id; S.activePreset=null; setTool('touch'); commit(); renderAll(); dirty=true;
-    toast(S.layers.length>1?'Placed on your photo, under your effects so they glitch it too. Drag to move, scroll or pinch to resize.':'Placed on your photo. Drag to move, scroll or pinch to resize.'); });
+    toast(S.layers.length>1?'Placed on your photo, under your effects so they glitch it too. Drag to move, scroll to resize, then lock it under Images.':'Placed on your photo. Drag to move, scroll to resize.'); });
 }
 function incoming(f){ if(!f) return; if(S.doc.kind==='sample'||(f.type||'').startsWith('video/')) loadFile(f); else placeImage(f); }
 $('#file2').addEventListener('change',e=>{ const f=e.target.files[0]; e.target.value=''; if(!f) return;
@@ -1763,9 +1817,10 @@ $('#file2').addEventListener('change',e=>{ const f=e.target.files[0]; e.target.v
 
 $('#loopLen').addEventListener('input',e=>{ S.loop=+e.target.value; $('#loopOut').textContent=S.loop.toFixed(1)+' s'; scheduleSave(); });
 $('#steps').addEventListener('input',e=>{ S.steps=+e.target.value; $('#stepsOut').textContent=S.steps; dirty=true; scheduleSave(); });
-$('#aspects').addEventListener('click',e=>{ const b=e.target.closest('[data-aspect]'); if(!b) return; S.doc.aspect=b.dataset.aspect; renderAspects(); setView(1,0,0); rebuildPreview(); scheduleSave(); });
-$('#bRot').onclick=()=>{ S.doc.rot=(S.doc.rot+1)%4; setView(1,0,0); rebuildPreview(); scheduleSave(); };
-$('#bFlip').onclick=()=>{ S.doc.flip=!S.doc.flip; rebuildPreview(); scheduleSave(); };
+['#loopLen','#steps'].forEach(id=>$(id).addEventListener('change',()=>commit()));
+$('#aspects').addEventListener('click',e=>{ const b=e.target.closest('[data-aspect]'); if(!b) return; S.doc.aspect=b.dataset.aspect; renderAspects(); setView(1,0,0); rebuildPreview(); commit(); });
+$('#bRot').onclick=()=>{ S.doc.rot=(S.doc.rot+1)%4; setView(1,0,0); rebuildPreview(); commit(); };
+$('#bFlip').onclick=()=>{ S.doc.flip=!S.doc.flip; rebuildPreview(); commit(); };
 $('#bSaveStack').onclick=()=>{ const name=$('#stackName').value.trim()||('Stack '+(loadStacks().length+1)); if(!S.layers.length){ toast('Add a layer first.'); return; }
   const a=loadStacks(); a.push({name,layers:S.layers.map(L=>{ const o=ser(L); delete o.id; o.maskOn=false; return o; })}); if(saveStacks(a)){ $('#stackName').value=''; renderStacks(); toast('Saved '+name); } };
 $('#myStacks').addEventListener('click',e=>{ const d=e.target.closest('[data-delstack]'); const a=loadStacks();
@@ -1784,6 +1839,7 @@ $('#imgs').addEventListener('click',e=>{
   const t=e.target.closest('button,li'); if(!t) return; const byId=id=>S.layers.find(l=>l.id===+id);
   if(t.dataset.replace){ $('#file').click(); return; }
   if(t.dataset.imgdel){ const L=byId(t.dataset.imgdel); if(L) deleteLayer(L); return; }
+  if(t.dataset.imglock){ const L=byId(t.dataset.imglock); if(L) toggleLock(L); return; }
   if(t.dataset.imgeye){ const L=byId(t.dataset.imgeye); if(L){ L.on=!L.on; commit(); renderAll(); dirty=true; } return; }
   if(t.dataset.img){ S.sel=+t.dataset.img; setTool('touch'); renderAll(); return; }
   if(t.dataset.base){ toast('This is your base photo. Use Replace to swap it, or Crop, Rotate and Flip under Image.'); }
@@ -1815,6 +1871,7 @@ window.addEventListener('keydown',e=>{
   // let focused buttons and rows handle Enter and Space themselves
   if((k===' '||k==='enter')&&e.target.closest&&e.target.closest('button,[role=button],li[tabindex],a,summary')) return;
   if(!$('#libSheet').hidden||!$('#exSheet').hidden){ if(k==='escape'&&!S.exporting){ $('#libSheet').hidden=true; $('#exSheet').hidden=true; } return; }
+  if(k==='escape'&&S.view.z>1){ setView(1,0,0); return; }
   if(!$('#start').hidden){ if(k==='o') $('#file').click(); else if(k==='v') startCamera(); return; }
   if(k===' '){ e.preventDefault(); $('#bPlay').click(); }
   else if(k==='r'&&e.shiftKey) randomizeSel(); else if(k==='r') chaos(); else if(k==='l') toggleLock(selLayer());
@@ -2197,13 +2254,14 @@ $('#bShare').onclick=shareStack;
   buildAscii(); buildEmoji();
   renderStacks(); updPlay();
   const resumed=await restoreSaved();
-  if(!resumed){ setDocImage(makeSample(),'sample');
-    S.layers=PRESETS[0].stack.map(([t,o])=>newLayer(t,o)); S.sel=S.layers[S.layers.length-1].id; S.activePreset=PRESETS[0].name; }
+  // the untouched sample is not saved, so the start screen comes back until the person does something
+  if(!resumed){ restoring=true; setDocImage(makeSample(),'sample');
+    S.layers=PRESETS[0].stack.map(([t,o])=>newLayer(t,o)); S.sel=S.layers[S.layers.length-1].id; S.activePreset=PRESETS[0].name; restoring=false; }
   const shared=await loadSharedFromHash();
   // first visit: ask for a photo instead of dropping people onto the sample
   if(!resumed&&!shared) showStart(); else hideStart();
   if(resumed&&S.doc.kind!=='sample') toast('Welcome back. Your last session is restored.');
-  HIST.s=[]; HIST.i=-1; commit(); renderAll(); setTool('touch');
+  restoring=true; HIST.s=[]; HIST.i=-1; commit(); restoring=false; renderAll(); setTool('touch');
   requestAnimationFrame(frame);
 })();
 </script>

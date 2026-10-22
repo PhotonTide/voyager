@@ -27,10 +27,10 @@
 | O / V / P | Open a file / camera / place an image on top |
 | A | Add an effect |
 | R / Shift R | Chaos / randomize the selected layer |
-| L | Lock the selected layer |
+| L | Lock the selected layer, or pin a placed image so zooming and dragging cannot move it |
 | T / B / X | Steer / paint / erase |
 | \ (hold) | Show the original |
-| + / − / 0 | Zoom in / out / fit |
+| + / − / 0, Esc | Zoom in / out / fit. Ctrl or Cmd + scroll and pinch also zoom |
 | S / E | Share link / export |
 | Delete | Remove the selected layer or image |
 | Ctrl/Cmd Z, Shift Ctrl/Cmd Z | Undo, redo |
