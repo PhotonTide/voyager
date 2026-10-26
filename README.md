@@ -30,7 +30,7 @@
 | L | Lock the selected layer, or pin a placed image so zooming and dragging cannot move it |
 | T / B / X | Steer / paint / erase |
 | \ (hold) | Show the original |
-| + / − / 0, Esc | Zoom in / out / fit. Ctrl or Cmd + scroll and pinch also zoom |
+| + / − / 0, Esc | Zoom in / out / fit. Pinch or Ctrl + scroll also zoom, except over an unlocked placed image, where they resize it. Cmd + scroll always zooms |
 | S / E | Share link / export |
 | Delete | Remove the selected layer or image |
 | Ctrl/Cmd Z, Shift Ctrl/Cmd Z | Undo, redo |

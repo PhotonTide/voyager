@@ -382,7 +382,7 @@ textarea{height:auto;min-height:52px;padding:6px 8px;resize:vertical;font:inheri
       <p class="note">Saved in this browser. Painted masks and overlay photos are not included.</p>
     </details>
     <section class="sec">
-      <p class="note keys">Keys: Space freeze · O open · V camera · P place image · A add effect · R chaos · Shift R randomize layer · L lock layer or placed image · Delete removes the selected image or layer · T steer · B paint · X erase · \ hold original · + − 0 zoom (Esc fits) · S share link · E export · Right-click or G hides the crosshair. Ctrl or pinch to zoom, scroll or middle-drag to pan.</p>
+      <p class="note keys">Keys: Space freeze · O open · V camera · P place image · A add effect · R chaos · Shift R randomize layer · L lock layer or placed image · Delete removes the selected image or layer · T steer · B paint · X erase · \ hold original · + − 0 zoom (Esc fits) · S share link · E export · Right-click or G hides the crosshair. Pinch or Ctrl + scroll to zoom (over an unlocked placed image this resizes it; Cmd + scroll always zooms), scroll or middle-drag to pan.</p>
       <p class="note touch-keys">Drag to steer. Two fingers zoom and move the view. With an unlocked placed image selected, two fingers resize and turn it instead; lock it to zoom over it.</p>
     </section>
   </aside>
@@ -913,7 +913,7 @@ const FX_LIST = [
  modes:['Wide','Mono','Serif','Heavy'],modeLabel:'Font',c:['#f4ead2','#000000'],cLabels:['Color','Unused'],
  p:[['Size',.02,.5,.12,.005],['Tracking',-.1,.6,.1,.01],['Glow',0,1,0]],
  glsl:`vec4 fx(vec2 uv){ vec4 t=texture(uAux,uv); vec3 b=T(uv).rgb; vec3 g=mix(b,uC0,t.g*P2); return vec4(mix(g,uC0,t.r),1.0);}`},
-{id:'image',name:'OVERLAY',cat:'Type',aux:'image',live:false,desc:'Places another image on top of your photo, like a silhouette or a cutout. Transparent PNGs keep their transparency. Drag to move, scroll to resize, and lock it once it is where you want it.',
+{id:'image',name:'OVERLAY',cat:'Type',aux:'image',live:false,desc:'Places another image on top of your photo, like a silhouette or a cutout. Transparent PNGs keep their transparency. Drag to move, scroll or pinch to resize, and lock it once it is where you want it.',
  modes:['Fit','Fill','Tile'],
  p:[['Scale',.05,3,.6,.01],['Rotate',-180,180,0,1],['Key out dark',0,1,0],['Key out light',0,1,0]],
  glsl:`vec4 fx(vec2 uv){
@@ -1479,7 +1479,7 @@ function randomizeLayer(L){
 function randomizeSel(){ const L=selLayer(); if(!L) return; randomizeLayer(L); S.activePreset=null; commit(); renderAll(); dirty=true; toast(FXM[L.type].name+' randomized'); }
 function toggleLock(L){ if(!L) return; L.lock=!L.lock; commit(); renderAll();
   const what=L.type==='image'?'Image':L.type==='text'?'Text':FXM[L.type].name;
-  toast(isPlaced(L)?(L.lock?what+' locked in place. Drags and pinches now go to the canvas.':what+' unlocked. Drag to move it, scroll to resize.')
+  toast(isPlaced(L)?(L.lock?what+' locked in place. Drags and pinches now go to the canvas.':what+' unlocked. Drag to move it, scroll or pinch to resize.')
     :(L.lock?what+' locked. Chaos keeps it.':what+' unlocked.')); }
 const lockTitle=L=>isPlaced(L)?(L.lock?'Unlock so you can move and resize it':'Lock in place so zooming and dragging cannot move it'):(L.lock?'Unlock: Chaos may replace it':'Lock: Chaos keeps this layer');
 function chaos(){
@@ -1563,7 +1563,7 @@ function updHint(){
   else if(S.tool!=='touch') t=S.tool==='paint'?'Brush over the photo to reveal '+fx.name+' there.':'Brush over the photo to hide '+fx.name+' there.';
   else if(L.type==='liquify') t='Drag on the photo to melt it.';
   else if(isPlaced(L)&&L.lock) t=(L.type==='image'?'Image':'Text')+' is locked in place. Unlock it under Images or Layers to move it.';
-  else if(L.type==='image') t=L._img?'Drag to move. Scroll or two fingers to resize, Shift + scroll or twist to rotate. Lock it when it is placed.':'Choose an image for this overlay.';
+  else if(L.type==='image') t=L._img?'Drag to move. Scroll or pinch to resize, Shift + scroll or twist to rotate. Lock it to zoom over it instead.':'Choose an image for this overlay.';
   else if(fx.usesPt&&fx.usesVec) t='Drag on the image. Where you press and how far you drag both steer '+fx.name+'.';
   else if(fx.usesPt) t='Tap or drag on the image to place '+fx.name+'.';
   else if(fx.usesVec) t='Drag on the image to steer '+fx.name+'.';
@@ -1632,18 +1632,22 @@ function pinchView(p,pi){
 }
 const twoInfo=m=>{ const [a,b]=[...m.values()]; return {d:Math.hypot(b[0]-a[0],b[1]-a[1]),mid:[(a[0]+b[0])/2,(a[1]+b[1])/2]}; };
 const sv=$('#stageView'), onControls=e=>e.target.closest&&e.target.closest('.tools,.zoom,.start,.hint');
+let lastCtrlWheel=0;
 sv.addEventListener('wheel',e=>{
+  if(e.ctrlKey) lastCtrlWheel=performance.now();
   if(!$('#start').hidden||onControls(e)) return;
-  // Ctrl/Cmd + scroll and trackpad pinch always zoom the view, never the placed image
+  // over an unlocked placed image, scroll and trackpad pinch resize it (the HUD handler); Cmd + scroll always zooms the view
+  const L=selLayer(); if(e.target===hud&&movable(L)&&S.tool==='touch'&&!e.metaKey) return;
   if(e.ctrlKey||e.metaKey){ e.preventDefault(); zoomAt(Math.exp(-e.deltaY*0.01),e.clientX,e.clientY); return; }
-  const L=selLayer(); if(e.target===hud&&movable(L)&&S.tool==='touch') return; // plain scroll resizes an unlocked placed image
   if(S.view.z>1){ e.preventDefault(); setView(S.view.z,S.view.x-e.deltaX,S.view.y-e.deltaY); }
 },{passive:false});
 // Safari sends trackpad pinches as gesture events instead of Ctrl + wheel
 let gz=null;
-sv.addEventListener('gesturestart',e=>{ e.preventDefault(); gz={z:S.view.z,x:e.clientX,y:e.clientY}; });
-sv.addEventListener('gesturechange',e=>{ if(!gz) return; e.preventDefault(); zoomAt(gz.z*e.scale/S.view.z,gz.x,gz.y); });
-sv.addEventListener('gestureend',e=>{ e.preventDefault(); gz=null; });
+sv.addEventListener('gesturestart',e=>{ e.preventDefault(); const L=selLayer();
+  gz=e.target===hud&&movable(L)&&S.tool==='touch'?{L,s0:L.p[0]}:{z:S.view.z,x:e.clientX,y:e.clientY}; });
+sv.addEventListener('gesturechange',e=>{ if(!gz) return; e.preventDefault(); if(performance.now()-lastCtrlWheel<200) return; // already handled as Ctrl + wheel
+  if(gz.L){ gz.L.p[0]=clamp(gz.s0*e.scale,.02,3); syncSlider(0); dirty=true; drawHud(); } else zoomAt(gz.z*e.scale/S.view.z,gz.x,gz.y); });
+sv.addEventListener('gestureend',e=>{ e.preventDefault(); if(gz&&gz.L){ commit(); renderImages(); } gz=null; });
 /* pan with the middle button anywhere, or by dragging the empty area around the image; pinch there with two fingers */
 let panDrag=null, vpinch=null; const VPT=new Map();
 sv.addEventListener('pointerdown',e=>{
@@ -1736,9 +1740,9 @@ hud.addEventListener('pointermove',e=>{
 });
 const endDrag=e=>{ PTRS.delete(e.pointerId); if(pinch){ if(PTRS.size<2){ if(!pinch.view){ commit(); renderImages(); } pinch=null; } return; } if(drag){ drag=null; commit(); renderLayers(); renderImages(); } };
 hud.addEventListener('pointerup',endDrag); hud.addEventListener('pointercancel',endDrag);
-hud.addEventListener('wheel',e=>{ const L=selLayer(); if(!movable(L)||S.tool!=='touch'||e.ctrlKey||e.metaKey) return; e.preventDefault();
+hud.addEventListener('wheel',e=>{ const L=selLayer(); if(!movable(L)||S.tool!=='touch'||e.metaKey) return; e.preventDefault();
   if(L.type==='image'&&(e.shiftKey||e.altKey)){ let r=(L.p[1]||0)+e.deltaY*0.15; r=((r+540)%360)-180; L.p[1]=Math.round(r); syncSlider(1); }
-  else { L.p[0]=clamp(L.p[0]*Math.exp(-e.deltaY*0.0015),.02,3); syncSlider(0); }
+  else { L.p[0]=clamp(L.p[0]*Math.exp(-e.deltaY*(e.ctrlKey?0.01:0.0015)),.02,3); syncSlider(0); }
   dirty=true; drawHud(); clearTimeout(wheelT); wheelT=setTimeout(()=>{ commit(); renderImages(); },350); },{passive:false});
 function toggleGuides(){ S.hideGuides=!S.hideGuides; hud.style.cursor=S.hideGuides?'default':''; drawHud(); toast(S.hideGuides?'Crosshair hidden. Right-click the image to bring it back.':'Crosshair showing.'); }
 hud.addEventListener('contextmenu',e=>{ e.preventDefault(); toggleGuides(); });
@@ -1809,7 +1813,7 @@ function placeImage(f){
   if(!f) return; if(f.type&&!f.type.startsWith('image/')){ toast('That file is not an image.'); return; }
   const L=newLayer('image',{}); L.pt=[.5,.5];
   loadOverlay(L,f,()=>{ let k=0; while(S.layers[k]&&S.layers[k].type==='image') k++; S.layers.splice(k,0,L); S.sel=L.id; S.activePreset=null; setTool('touch'); commit(); renderAll(); dirty=true;
-    toast(S.layers.length>1?'Placed on your photo, under your effects so they glitch it too. Drag to move, scroll to resize, then lock it under Images.':'Placed on your photo. Drag to move, scroll to resize.'); });
+    toast(S.layers.length>1?'Placed on your photo, under your effects so they glitch it too. Drag to move, scroll or pinch to resize, then lock it under Images.':'Placed on your photo. Drag to move, scroll or pinch to resize.'); });
 }
 function incoming(f){ if(!f) return; if(S.doc.kind==='sample'||(f.type||'').startsWith('video/')) loadFile(f); else placeImage(f); }
 $('#file2').addEventListener('change',e=>{ const f=e.target.files[0]; e.target.value=''; if(!f) return;
